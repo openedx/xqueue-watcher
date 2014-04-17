@@ -73,11 +73,11 @@ class Manager(object):
         if not self.clients:
             return
         signal.signal(signal.SIGTERM, self.shutdown)
+        time.sleep(2)
         while 1:
             for client in self.clients:
-                if not client.is_alive:
-                    self.log.error('Client %s died -> %s',
-                                   client.id,
+                if not client.is_alive():
+                    self.log.error('Client died -> %r',
                                    client.queue_name)
                     self.shutdown()
                 try:
@@ -92,7 +92,8 @@ class Manager(object):
         self.log.info('shutting down')
         for client in self.clients:
             client.shutdown()
-            client.join()
+            if client.processing:
+                client.join()
             self.log.info('%r done', client)
         self.log.info('done')
         sys.exit()
@@ -101,7 +102,7 @@ class Manager(object):
 def main():
     import argparse
     parser = argparse.ArgumentParser(description="Run grader from settings")
-    parser.add_argument('-s', '--settings', default="pullgrader.settings", help='settings module to load')
+    parser.add_argument('-s', '--settings', help='settings module to load')
     parser.add_argument('-f', '--config', type=argparse.FileType('rb'), help='settings json file to load')
     parser.add_argument('-l', '--log-config', type=argparse.FileType('rb'), help='logger settings json file to load')
     args = parser.parse_args()

@@ -3,8 +3,9 @@ import sys
 import cgi
 import time
 import json
-import os.path
+from path import path
 import logging
+import multiprocessing
 from statsd import statsd
 
 def printit(content):
@@ -90,19 +91,23 @@ class Grader(object):
     def __init__(self, grader_file=None, sandbox=None, grader_root='/tmp/', logger_name='xserver.grader'):
         self.log = logging.getLogger(logger_name)
         self.sandbox = sandbox
-        self.grader_root = grader_root
+        self.grader_root = path(grader_root)
         if grader_file:
-            moddir = os.path.dirname(grader_file)
+            moddir = path(grader_file).dirname()
             if moddir not in sys.path:
                 sys.path.append(moddir)
             self.grade = imp.load_source('grade', grader_file).grade
         else:
-            self.grade = self._no_grader
-
-    def _no_grader(self, *args):
-        raise NotImplementedError("No grader defined")
+            raise NotImplementedError("no grader defined")
 
     def __call__(self, content):
+        q = multiprocessing.Queue()
+        proc = multiprocessing.Process(target=self._handle_one, args=(content, q))
+        proc.start()
+        proc.join()
+        return q.get_nowait()
+
+    def _handle_one(self, content, queue=None):
         statsd.increment('xserver.post-requests')
         body  = content['xqueue_body']
         files = content['xqueue_files']
@@ -123,7 +128,7 @@ class Grader(object):
 
         self.log.debug("Processing submission, grader payload: {0}".format(payload))
         relative_grader_path = grader_config['grader']
-        grader_path = os.path.join(self.grader_root, relative_grader_path)
+        grader_path = (self.grader_root / relative_grader_path).abspath()
         start = time.time()
         results = self.grade(grader_path, grader_config, student_response, self.sandbox)
 
@@ -135,7 +140,8 @@ class Grader(object):
                   'msg': self.render_results(results)}
 
         statsd.increment('xserver.post-replies (non-exception)')
-
+        if queue:
+            queue.put(reply)
         return reply
 
     def render_results(self, results):
@@ -159,4 +165,3 @@ class Grader(object):
         return self.results_template.format(status=status,
                                            errors=errors,
                                            results=''.join(output))
-

@@ -28,7 +28,7 @@ XQUEUES  = {
         'handlers': [
             {
                 'handler': 'pullgrader.grader.Grader',
-                'sandbox': 'python',
+                # 'sandbox': 'python',
                 'kwargs': {
                     'grader_file': ENV_ROOT / 'data/6.00x/graders/grade.py', 
                     'grader_root': ENV_ROOT / 'data/6.00x/graders'
