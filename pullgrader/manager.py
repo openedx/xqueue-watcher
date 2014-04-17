@@ -26,7 +26,9 @@ class Manager(object):
         import xqueue_client
 
         klass = getattr(xqueue_client, config.get('class', 'XQueueClientThread'))
-        client = klass(queue_name, auth=config.get('auth', (None, None)))
+        client = klass(queue_name,
+                       xqueue_server=config.get('server', 'http://localhost:18040'),
+                       auth=config.get('auth', (None, None)))
 
         for handler_config in config.get('handlers', []):
             handler_name = handler_config['handler']
