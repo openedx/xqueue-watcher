@@ -34,7 +34,7 @@ def get_logger_config(log_dir,
     syslog_format = ("[%(name)s][env:{logging_env}] %(levelname)s "
                      "[{hostname}  %(process)d] [%(filename)s:%(lineno)d] "
                      "- %(message)s").format(
-                        logging_env=logging_env, hostname=hostname)
+        logging_env=logging_env, hostname=hostname)
 
     handlers = ['console', 'local'] if debug else ['console', 'local']
 

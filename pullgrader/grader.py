@@ -8,9 +8,11 @@ import logging
 import multiprocessing
 from statsd import statsd
 
+
 def printit(content):
     print repr(content)
-    
+
+
 def format_errors(errors):
     esc = cgi.escape
     error_string = ''
@@ -60,7 +62,7 @@ class Grader(object):
   </section>
 </div>
 """
-   
+
     results_correct_template = u"""
   <div class="result-output result-correct">
     <h4>{short-description}</h4>
@@ -74,7 +76,6 @@ class Grader(object):
   </div>
 """
 
-
     results_incorrect_template = u"""
   <div class="result-output result-incorrect">
     <h4>{short-description}</h4>
@@ -87,7 +88,7 @@ class Grader(object):
     </dl>
   </div>
 """
-    
+
     def __init__(self, grader_file=None, sandbox=None, grader_root='/tmp/', logger_name='xserver.grader'):
         self.log = logging.getLogger(logger_name)
         self.sandbox = sandbox
@@ -109,7 +110,7 @@ class Grader(object):
 
     def _handle_one(self, content, queue=None):
         statsd.increment('xserver.post-requests')
-        body  = content['xqueue_body']
+        body = content['xqueue_body']
         files = content['xqueue_files']
 
         # Delivery from the lms
@@ -136,8 +137,8 @@ class Grader(object):
 
         # Make valid JSON message
         reply = {'correct': results['correct'],
-                  'score': results['score'],
-                  'msg': self.render_results(results)}
+                 'score': results['score'],
+                 'msg': self.render_results(results)}
 
         statsd.increment('xserver.post-replies (non-exception)')
         if queue:
@@ -163,5 +164,5 @@ class Grader(object):
             status = 'CORRECT'
 
         return self.results_template.format(status=status,
-                                           errors=errors,
-                                           results=''.join(output))
+                                            errors=errors,
+                                            results=''.join(output))
