@@ -93,57 +93,81 @@ class Grader(object):
         self.log = logging.getLogger(logger_name)
         self.sandbox = sandbox
         self.grader_root = path(grader_root)
+        self.grader_file = None
+
         if grader_file:
-            moddir = path(grader_file).dirname()
-            if moddir not in sys.path:
-                sys.path.append(moddir)
-            self.grade = imp.load_source('grade', grader_file).grade
-        else:
-            raise NotImplementedError("no grader defined")
+            grader_file = path(grader_file)
+            if grader_file.exists():
+                self.grader_file = grader_file
+            else:
+                raise Exception("%s does not exist" % grader_file)
 
     def __call__(self, content):
         q = multiprocessing.Queue()
         proc = multiprocessing.Process(target=self._handle_one, args=(content, q))
         proc.start()
         proc.join()
-        return q.get_nowait()
+        reply = q.get_nowait()
+        if isinstance(reply, Exception):
+            raise reply
+        else:
+            return reply
+
+    def grade(self, grader_path, grader_config, student_response, sandbox):
+        raise NotImplementedError("no grader defined")
 
     def _handle_one(self, content, queue=None):
-        statsd.increment('xserver.post-requests')
-        body = content['xqueue_body']
-        files = content['xqueue_files']
-
-        # Delivery from the lms
-        body = json.loads(body)
-        student_response = body['student_response']
-        payload = body['grader_payload']
         try:
-            grader_config = json.loads(payload)
-        except ValueError as err:
-            # If parsing json fails, erroring is fine--something is wrong in the content.
-            # However, for debugging, still want to see what the problem is
-            statsd.increment('xserver.grader_payload_error')
+            statsd.increment('xserver.post-requests')
+            body = content['xqueue_body']
+            files = content['xqueue_files']
 
-            self.log.debug("error parsing: '{0}' -- {1}".format(payload, err))
-            raise
+            # Delivery from the lms
+            body = json.loads(body)
+            student_response = body['student_response']
+            payload = body['grader_payload']
+            try:
+                grader_config = json.loads(payload)
+            except ValueError as err:
+                # If parsing json fails, erroring is fine--something is wrong in the content.
+                # However, for debugging, still want to see what the problem is
+                statsd.increment('xserver.grader_payload_error')
 
-        self.log.debug("Processing submission, grader payload: {0}".format(payload))
-        relative_grader_path = grader_config['grader']
-        grader_path = (self.grader_root / relative_grader_path).abspath()
-        start = time.time()
-        results = self.grade(grader_path, grader_config, student_response, self.sandbox)
+                self.log.debug("error parsing: '{0}' -- {1}".format(payload, err))
+                raise
 
-        statsd.histogram('xserver.grading-time', time.time() - start)
+            self.log.debug("Processing submission, grader payload: {0}".format(payload))
+            relative_grader_path = grader_config['grader']
+            grader_path = (self.grader_root / relative_grader_path).abspath()
+            if self.grader_file:
+                moddir = self.grader_file.dirname()
+                if moddir not in sys.path:
+                    sys.path.append(moddir)
+                try:
+                    grade = imp.load_source('grade', self.grader_file).grade
+                except (SyntaxError, AttributeError):
+                    self.log.error("grade function not found in %s", self.grader_file)
+                    raise
+            else:
+                grade = self.grade
+            start = time.time()
+            results = grade(grader_path, grader_config, student_response, self.sandbox)
 
-        # Make valid JSON message
-        reply = {'correct': results['correct'],
-                 'score': results['score'],
-                 'msg': self.render_results(results)}
+            statsd.histogram('xserver.grading-time', time.time() - start)
 
-        statsd.increment('xserver.post-replies (non-exception)')
-        if queue:
-            queue.put(reply)
-        return reply
+            # Make valid JSON message
+            reply = {'correct': results['correct'],
+                     'score': results['score'],
+                     'msg': self.render_results(results)}
+
+            statsd.increment('xserver.post-replies (non-exception)')
+        except Exception as e:
+            if queue:
+                queue.put(e)
+        else:
+            if queue:
+                queue.put(reply)
+            return reply
 
     def render_results(self, results):
         output = []
