@@ -21,7 +21,7 @@ LOGGING = get_logger_config(ENV_ROOT / "log",
                             dev_env=True,
                             debug=True)
 
-XQUEUES  = {
+XQUEUES = {
     'test-123': {
         'auth': ('lms', 'lms'),
         'connections': 2,
@@ -30,7 +30,7 @@ XQUEUES  = {
                 'handler': 'pullgrader.grader.Grader',
                 # 'sandbox': 'python',
                 'kwargs': {
-                    'grader_file': ENV_ROOT / 'data/6.00x/graders/grade.py', 
+                    'grader_file': ENV_ROOT / 'data/6.00x/graders/grade.py',
                     'grader_root': ENV_ROOT / 'data/6.00x/graders'
                 }
             },
@@ -51,6 +51,5 @@ if os.path.isfile(ENV_ROOT / "env.json"):
                                 logging_env=ENV_TOKENS['LOGGING_ENV'],
                                 local_loglevel=local_loglevel,
                                 debug=False)
-
 
     XQUEUES = ENV_TOKENS.get('XQUEUES')

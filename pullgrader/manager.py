@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import sys
 import time
 import json
@@ -18,6 +19,7 @@ class Manager(object):
     def __init__(self):
         self.clients = []
         self.log = logging.getLogger('xserver.manager')
+        self.poll_time = 10
 
     def client_from_config(self, queue_name, config):
         """
@@ -75,7 +77,6 @@ class Manager(object):
         if not self.clients:
             return
         signal.signal(signal.SIGTERM, self.shutdown)
-        time.sleep(2)
         while 1:
             for client in self.clients:
                 if not client.is_alive():
@@ -83,8 +84,8 @@ class Manager(object):
                                    client.queue_name)
                     self.shutdown()
                 try:
-                    time.sleep(10)
-                except KeyboardInterrupt:
+                    time.sleep(self.poll_time)
+                except KeyboardInterrupt:  # pragma: no cover
                     self.shutdown()
 
     def shutdown(self, *args):
@@ -101,13 +102,14 @@ class Manager(object):
         sys.exit()
 
 
-def main():
+def main(args=None):
     import argparse
-    parser = argparse.ArgumentParser(description="Run grader from settings")
+    parser = argparse.ArgumentParser(prog="pullgrader", description="Run grader from settings")
     parser.add_argument('-s', '--settings', help='settings module to load')
     parser.add_argument('-f', '--config', type=argparse.FileType('rb'), help='settings json file to load')
     parser.add_argument('-l', '--log-config', type=argparse.FileType('rb'), help='logger settings json file to load')
-    args = parser.parse_args()
+
+    args = parser.parse_args(args)
 
     if args.settings:
         settings = importlib.import_module(args.settings)
@@ -116,7 +118,7 @@ def main():
     elif args.config:
         config = json.load(args.config)
     else:
-        print parser.error("No configuration defined")
+        print("No configuration defined")
         return -1
     if args.log_config:
         logging.config.dictConfig(json.load(args.log_config))
@@ -124,7 +126,7 @@ def main():
     manager.configure(config)
     manager.start()
     manager.wait()
-
+    return 0
 
 if __name__ == '__main__':
-    sys.exit(main())
+    sys.exit(main(sys.argv[1:]))  # pragma: no cover

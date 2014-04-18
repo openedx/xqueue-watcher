@@ -9,10 +9,6 @@ import multiprocessing
 from statsd import statsd
 
 
-def printit(content):
-    print repr(content)
-
-
 def format_errors(errors):
     esc = cgi.escape
     error_string = ''
@@ -104,7 +100,7 @@ class Grader(object):
 
     def __call__(self, content):
         q = multiprocessing.Queue()
-        proc = multiprocessing.Process(target=self._handle_one, args=(content, q))
+        proc = multiprocessing.Process(target=self.process_item, args=(content, q))
         proc.start()
         proc.join()
         reply = q.get_nowait()
@@ -116,7 +112,7 @@ class Grader(object):
     def grade(self, grader_path, grader_config, student_response, sandbox):
         raise NotImplementedError("no grader defined")
 
-    def _handle_one(self, content, queue=None):
+    def process_item(self, content, queue=None):
         try:
             statsd.increment('xserver.post-requests')
             body = content['xqueue_body']
@@ -145,7 +141,7 @@ class Grader(object):
                     sys.path.append(moddir)
                 try:
                     grade = imp.load_source('grade', self.grader_file).grade
-                except (SyntaxError, AttributeError):
+                except (SyntaxError, AttributeError, NameError):
                     self.log.error("grade function not found in %s", self.grader_file)
                     raise
             else:
@@ -164,6 +160,8 @@ class Grader(object):
         except Exception as e:
             if queue:
                 queue.put(e)
+            else:
+                raise
         else:
             if queue:
                 queue.put(reply)

@@ -27,14 +27,14 @@ class XQueueClient(object):
         if response.status_code not in [200]:
             error_message = "Server %s returned status_code=%d' % (url, r.status_code)"
             log.error(error_message)
-            return (False, error_message)
+            return False, error_message
 
         try:
             xreply = response.json()
         except ValueError:
             error_message = "Could not parse xreply."
             log.error(error_message)
-            return (False, error_message)
+            return False, error_message
 
         if 'return_code' in xreply:
             return_code = xreply['return_code'] == 0
@@ -46,7 +46,7 @@ class XQueueClient(object):
             return False, "Cannot find a valid success or return code."
 
         if return_code not in [True, False]:
-            return (False, 'Invalid return code.')
+            return False, 'Invalid return code.'
 
         return return_code, content
 
@@ -55,7 +55,7 @@ class XQueueClient(object):
         r = None
         while not r:
             try:
-                r = getattr(self.session, method)(url, timeout=timeout, **kwargs)
+                r = self.session.request(method, url, timeout=timeout, **kwargs)
             except requests.exceptions.ConnectionError as e:
                 log.error('Could not connect to server at %s in timeout=%r', url, timeout)
                 return (False, e.message)
@@ -70,7 +70,7 @@ class XQueueClient(object):
     def _login(self):
         url = self.xqueue_server + '/xqueue/login/'
         log.debug("Trying to login to {0} with user: {1} and pass {2}".format(url, self.username, self.password))
-        response = self.session.post(url, {
+        response = self.session.request('post', url, data={
             'username': self.username,
             'password': self.password,
             })
@@ -102,6 +102,7 @@ class XQueueClient(object):
 
     def _handle_submission(self, content):
         content = json.loads(content)
+        success = []
         for handler in self.handlers:
             result = handler(content)
             if result:
@@ -110,28 +111,35 @@ class XQueueClient(object):
                 status, message = self._request('post', '/xqueue/put_result/', data=reply, verify=False)
                 if not status:
                     log.error('Failure for %r -> %r', reply, message)
+                success.append(status)
+        return all(success)
+
+    def process_one(self):
+        try:
+            self.processing = False
+            get_params = {'queue_name': self.queue_name, 'block': 'true'}
+            success, content = self._request('get', '/xqueue/get_submission/', params=get_params)
+            if success:
+                self.processing = True
+                success = self._handle_submission(content)
+            return success
+        except requests.exceptions.Timeout:
+            return True
+        except Exception as e:
+            log.exception(e.message)
+            return True
 
     def run(self):
         """
         Run forever, processing items from the queue
         """
         if not self._login():
-            raise Exception("Could not log in to Xqueue %s", self.queue_name)
-        get_params = {'queue_name': self.queue_name, 'block': 'true'}
+            log.error("Could not log in to Xqueue %s. Quitting" % self.queue_name)
+            return False
         while self.running:
-            try:
-                self.processing = False
-                success, content = self._request('get', '/xqueue/get_submission/', params=get_params)
-                if success:
-                    self.processing = True
-                    self._handle_submission(content)
-                else:
-                    time.sleep(1)
-            except requests.exceptions.Timeout:
-                continue
-            except Exception as e:
-                log.exception(e.message)
-                continue
+            if not self.process_one():
+                time.sleep(1)
+        return True
 
 
 class XQueueClientThread(XQueueClient, threading.Thread):
