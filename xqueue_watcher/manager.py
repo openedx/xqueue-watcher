@@ -9,7 +9,7 @@ import logging
 import importlib
 import logging.config
 
-from pullgrader.sandbox import Sandbox
+from .sandbox import Sandbox
 
 
 class Manager(object):
@@ -25,10 +25,10 @@ class Manager(object):
         """
         Return an XQueueClient from the configuration object.
         """
-        import xqueue_client
+        from . import client
 
-        klass = getattr(xqueue_client, config.get('CLASS', 'XQueueClientThread'))
-        client = klass(queue_name,
+        klass = getattr(client, config.get('CLASS', 'XQueueClientThread'))
+        watcher = klass(queue_name,
                        xqueue_server=config.get('SERVER', 'http://localhost:18040'),
                        auth=config.get('AUTH', (None, None)))
 
@@ -50,8 +50,8 @@ class Manager(object):
             if kw:
                 # handler could be a function or a class
                 handler = handler(**kw)
-            client.add_handler(handler)
-        return client
+            watcher.add_handler(handler)
+        return watcher
 
     def configure(self, configuration):
         """
@@ -59,8 +59,8 @@ class Manager(object):
         """
         for queue_name, config in configuration.items():
             for i in range(config.get('CONNECTIONS', 1)):
-                client = self.client_from_config(queue_name, config)
-                self.clients.append(client)
+                watcher = self.client_from_config(queue_name, config)
+                self.clients.append(watcher)
 
     def enable_codejail(self, codejail_config):
         """
@@ -128,7 +128,7 @@ class Manager(object):
 
 def main(args=None):
     import argparse
-    parser = argparse.ArgumentParser(prog="pullgrader", description="Run grader from settings")
+    parser = argparse.ArgumentParser(prog="xqueue_watcher", description="Run grader from settings")
     parser.add_argument('-s', '--settings', help='settings module to load')
     parser.add_argument('-f', '--config', type=argparse.FileType('rb'), help='settings json file to load')
     parser.add_argument('-l', '--log-config', type=argparse.FileType('rb'), help='logger settings json file to load')

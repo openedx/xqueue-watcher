@@ -5,7 +5,7 @@ import sys
 from path import path
 from Queue import Queue
 
-from pullgrader import grader
+from xqueue_watcher import grader
 
 MYDIR = path(__file__).dirname()
 

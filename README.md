@@ -1,4 +1,4 @@
-pullgrader
+xqueue_watcher
 ==========
 
 This is an implementation of a polling [XQueue](https://github.com/edx/xqueue) client and grader.
@@ -7,9 +7,9 @@ This is an implementation of a polling [XQueue](https://github.com/edx/xqueue) c
 Running
 =======
 
-`python -m pullgrader -s [settings module]`  
+`python -m xqueue_watcher -s [settings module]`  
 or  
-`python -m pullgrader -f [settings json file]`
+`python -m xqueue_watcher -f [settings json file]`
 
 
 JSON configuration file
@@ -21,7 +21,7 @@ JSON configuration file
 			"AUTH": ["lms", "lms"],
 			"HANDLERS": [
 				{
-					"HANDLER": "pullgrader.grader.Grader",
+					"HANDLER": "xqueue_watcher.grader.Grader",
 					"KWARGS": {
 						"grader_root": "../data/6.00x/graders/",
 						"grader_file": "../data/6.00x/graders/grade.py"
@@ -40,11 +40,11 @@ JSON configuration file
 	* `KWARGS`: optional keyword arguments to apply during instantiation
 
 
-pullgrader.grader.Grader
+xqueue_watcher.grader.Grader
 ========================
 There are two ways of implementing a pull grader.
 
-1. *Recommended*: subclass pullgrader.grader.Grader and override the `grade` method. Then add your grader to the config like `"handler": "my_module.MyGrader"`. The arguments for the `grade` method are:
+1. *Recommended*: subclass xqueue_watcher.grader.Grader and override the `grade` method. Then add your grader to the config like `"handler": "my_module.MyGrader"`. The arguments for the `grade` method are:
 	* `grader_path`: absolute path to the grader defined for the current problem
 	* `grader_config`: other configuration particular to the problem
 	* `student_response`: student-supplied code
@@ -62,7 +62,7 @@ The recommended way to sandbox python is by using [CodeJail](https://github.com/
 		"user": "sandbox_username"
 	}
 
-And add `-j path/to/config.json` on the pullgrader command. You can then import codejail.jail_code and run `jail_code("python", code...)`.
+And add `-j path/to/config.json` on the xqueue_watcher command. You can then import codejail.jail_code and run `jail_code("python", code...)`.
 
 The old method of sandboxing is as follows:
 

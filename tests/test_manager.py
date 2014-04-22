@@ -6,7 +6,7 @@ import time
 import sys
 
 import logging
-from pullgrader import manager, sandbox
+from xqueue_watcher import manager, sandbox
 from tests.test_xqueue_client import MockXQueueServer
 
 try:
@@ -24,7 +24,7 @@ class ManagerTests(unittest.TestCase):
                 'SERVER': 'http://test1',
                 'HANDLERS': [
                     {
-                        'HANDLER': 'pullgrader.grader.Grader',
+                        'HANDLER': 'xqueue_watcher.grader.Grader',
                         'KWARGS': {
                             'grader_file': path(__file__).dirname() / 'mock_grader.py',
                         },

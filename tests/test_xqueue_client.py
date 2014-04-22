@@ -5,7 +5,7 @@ import collections
 import requests
 import requests.exceptions
 
-import xqueue_client
+from xqueue_watcher import client
 
 Request = collections.namedtuple('Request', ('method', 'url', 'kwargs', 'response'))
 
@@ -45,7 +45,7 @@ class MockXQueueServer(mock.Mock):
 
 class ClientTests(unittest.TestCase):
     def setUp(self):
-        self.client = xqueue_client.XQueueClient('test', xqueue_server='TEST')
+        self.client = client.XQueueClient('test', xqueue_server='TEST')
         self.session = MockXQueueServer()
         self.client.session = self.session
         self.qitem = None
