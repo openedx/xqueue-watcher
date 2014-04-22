@@ -27,21 +27,21 @@ class Manager(object):
         """
         import xqueue_client
 
-        klass = getattr(xqueue_client, config.get('class', 'XQueueClientThread'))
+        klass = getattr(xqueue_client, config.get('CLASS', 'XQueueClientThread'))
         client = klass(queue_name,
-                       xqueue_server=config.get('server', 'http://localhost:18040'),
-                       auth=config.get('auth', (None, None)))
+                       xqueue_server=config.get('SERVER', 'http://localhost:18040'),
+                       auth=config.get('AUTH', (None, None)))
 
-        for handler_config in config.get('handlers', []):
-            handler_name = handler_config['handler']
+        for handler_config in config.get('HANDLERS', []):
+            handler_name = handler_config['HANDLER']
             mod_name, classname = handler_name.rsplit('.', 1)
             module = importlib.import_module(mod_name)
 
-            kw = handler_config.get('kwargs', {})
+            kw = handler_config.get('KWARGS', {})
 
             # HACK
             # Graders should use codejail instead of this other sandbox implementation
-            sandbox_config = handler_config.get('sandbox')
+            sandbox_config = handler_config.get('SANDBOX')
             if sandbox_config:
                 kw['sandbox'] = Sandbox(logging.getLogger('xserver.sandbox.{}'.format(queue_name)),
                                         python_path=sandbox_config,
@@ -58,7 +58,7 @@ class Manager(object):
         Configure XQueue clients.
         """
         for queue_name, config in configuration.items():
-            for i in range(config.get('connections', 1)):
+            for i in range(config.get('CONNECTIONS', 1)):
                 client = self.client_from_config(queue_name, config)
                 self.clients.append(client)
 

@@ -21,9 +21,6 @@
 		"raw": {
 			"format": "%(message)s"
 		},
-		"syslog_format": {
-			"format": "[%(name)s][env:dev] %(levelname)s [bodhi  %(process)d] [%(filename)s:%(lineno)d] - %(message)s"
-		},
 		"standard": {
 			"format": "%(asctime)s %(levelname)s %(process)d [%(name)s] %(filename)s:%(lineno)d - %(message)s"
 		}

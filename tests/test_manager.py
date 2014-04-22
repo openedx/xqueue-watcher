@@ -14,23 +14,23 @@ class ManagerTests(unittest.TestCase):
         self.m = manager.Manager()
         self.config = {
             'test1': {
-                'server': 'http://test1',
-                'handlers': [
+                'SERVER': 'http://test1',
+                'HANDLERS': [
                     {
-                        'handler': 'pullgrader.grader.Grader',
-                        'kwargs': {
+                        'HANDLER': 'pullgrader.grader.Grader',
+                        'KWARGS': {
                             'grader_file': path(__file__).dirname() / 'mock_grader.py',
                         },
-                        'sandbox': 'python'
+                        'SANDBOX': 'python'
                     }
                 ]
             },
             'test2': {
-                'connections': 2,
-                'server': 'http://test2',
-                'handlers': [
+                'CONNECTIONS': 2,
+                'SERVER': 'http://test2',
+                'HANDLERS': [
                     {
-                        'handler': 'urllib.urlencode'
+                        'HANDLER': 'urllib.urlencode'
                     }
                 ]
             }

@@ -23,13 +23,13 @@ LOGGING = get_logger_config(ENV_ROOT / "log",
 
 XQUEUES = {
     'test-123': {
-        'auth': ('lms', 'lms'),
-        'connections': 2,
-        'handlers': [
+        'AUTH': ('lms', 'lms'),
+        'CONNECTIONS': 2,
+        'HANDLERS': [
             {
-                'handler': 'pullgrader.grader.Grader',
+                'HANDLER': 'pullgrader.grader.Grader',
                 # 'sandbox': 'python',
-                'kwargs': {
+                'KWARGS': {
                     'grader_file': ENV_ROOT / 'data/6.00x/graders/grade.py',
                     'grader_root': ENV_ROOT / 'data/6.00x/graders'
                 }
