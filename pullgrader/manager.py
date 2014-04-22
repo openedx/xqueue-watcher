@@ -62,6 +62,30 @@ class Manager(object):
                 client = self.client_from_config(queue_name, config)
                 self.clients.append(client)
 
+    def enable_codejail(self, codejail_config):
+        """
+        Enable codejail for the process.
+        codejail_config is a dict like this:
+        {
+            "python_bin": "/path/to/python",
+            "user": "sandbox_username",
+            "limits": {
+                "CPU": 1,
+                ...
+            }
+        }
+        limits are optional
+        """
+        python_bin = codejail_config.get('python_bin')
+        if python_bin:
+            import codejail.jail_code
+            user = codejail_config['user']
+            codejail.jail_code.configure("python", python_bin, user=user)
+            limits = codejail_config.get("limits", {})
+            for name, value in limits.items():
+                codejail.jail_code.set_limit(name, value)
+            self.log.info("configured codejail -> %s %s", python_bin, user)
+
     def start(self):
         """
         Start XQueue client threads (or processes).
@@ -108,6 +132,7 @@ def main(args=None):
     parser.add_argument('-s', '--settings', help='settings module to load')
     parser.add_argument('-f', '--config', type=argparse.FileType('rb'), help='settings json file to load')
     parser.add_argument('-l', '--log-config', type=argparse.FileType('rb'), help='logger settings json file to load')
+    parser.add_argument('-j', '--jail-config', type=argparse.FileType('rb'), help='codejail settings json file to load')
 
     args = parser.parse_args(args)
 
@@ -122,7 +147,11 @@ def main(args=None):
         return -1
     if args.log_config:
         logging.config.dictConfig(json.load(args.log_config))
+
     manager = Manager()
+    if args.jail_config:
+        manager.enable_codejail(json.load(args.jail_config))
+
     manager.configure(config)
     manager.start()
     manager.wait()

@@ -16,6 +16,16 @@ def grade(grader_path, grader_config, student_response, sandbox):
         errors.append('THIS IS AN ERROR')
         errors.append(u'\x00\xc3\x83\xc3\xb8\x02')
 
+    try:
+        import codejail.jail_code
+    except ImportError:
+        tests.append(("codejail", "codejail not installed", True, "", ""))
+    else:
+        if codejail.jail_code.is_configured("python"):
+            tests.append(("codejail", "codejail configured", True, "", ""))
+        else:
+            tests.append(("codejail", "codejail not configured", True, "", ""))
+
     results = {
         'correct': correct,
         'score': score,

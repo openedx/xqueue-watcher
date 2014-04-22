@@ -3,10 +3,17 @@ from path import path
 import json
 from mock import Mock
 import time
+import sys
 
 import logging
 from pullgrader import manager, sandbox
 from tests.test_xqueue_client import MockXQueueServer
+
+try:
+    import codejail.jail_code
+    HAS_CODEJAIL = True
+except ImportError:
+    HAS_CODEJAIL = False
 
 
 class ManagerTests(unittest.TestCase):
@@ -50,6 +57,36 @@ class ManagerTests(unittest.TestCase):
                 self.assertTrue(c.handlers[0].sandbox is not None)
             elif c.queue_name == 'test2':
                 self.assertEqual(c.xqueue_server, 'http://test2')
+
+    @unittest.skipUnless(HAS_CODEJAIL, "Codejail not installed")
+    def test_codejail_config(self):
+        config = {
+            "python_bin": "/usr/bin/python",
+            "user": "nobody",
+            "limits": {
+                "CPU": 2,
+                "VMEM": 1024
+            }
+        }
+        self.m.enable_codejail(config)
+        self.assertTrue(codejail.jail_code.is_configured("python"))
+
+        # now we'll see if the codejail config is inherited in the handler subprocess
+        handler_config = self.config['test1'].copy()
+        client = self.m.client_from_config("test", handler_config)
+        client.session = MockXQueueServer()
+        client._handle_submission(json.dumps({
+            "xqueue_header": "",
+            "xqueue_files": [],
+            "xqueue_body": json.dumps({
+                'student_response': 'blah',
+                'grader_payload': json.dumps({
+                    'grader': '/tmp/grader.py'
+                    })
+                })
+            }))
+        last_req = client.session._requests[-1]
+        self.assertIn('codejail configured', last_req.kwargs['data']['xqueue_body'])
 
     def test_start(self):
         self.m.configure(self.config)
@@ -115,10 +152,10 @@ class ManagerTests(unittest.TestCase):
     def test_main(self):
         self.assertEqual(manager.main([]), -1)
         mydir = path(__file__).dirname()
-        args = ['-f', mydir / 'test_config.json', '-l', mydir / 'test_logging.json']
+        args = ['-f', mydir / 'test_config.json', '-l', mydir / 'test_logging.json', '-j', mydir / "test_cj.json"]
         self.assertEqual(manager.main(args), 0)
 
-        args = ['-s', 'fake_settings']
+        args = ['-s', 'tests.fake_settings']
         self.assertEqual(manager.main(args), 0)
 
 

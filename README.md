@@ -14,22 +14,22 @@ or
 
 JSON configuration file
 =======================
-		{
-			"test-123": {
-				"SERVER": "http://127.0.0.1:18040",
-				"CONNECTIONS": 1,
-				"AUTH": ["lms", "lms"],
-				"HANDLERS": [
-					{
-						"HANDLER": "pullgrader.grader.Grader",
-						"KWARGS": {
-							"grader_root": "../data/6.00x/graders/",
-							"grader_file": "../data/6.00x/graders/grade.py"
-						}
+	{
+		"test-123": {
+			"SERVER": "http://127.0.0.1:18040",
+			"CONNECTIONS": 1,
+			"AUTH": ["lms", "lms"],
+			"HANDLERS": [
+				{
+					"HANDLER": "pullgrader.grader.Grader",
+					"KWARGS": {
+						"grader_root": "../data/6.00x/graders/",
+						"grader_file": "../data/6.00x/graders/grade.py"
 					}
-				]
-			}
+				}
+			]
 		}
+	}
 
 * `test-123`: the name of the queue
 * `SERVER`: XQueue server address
@@ -55,7 +55,14 @@ There are two ways of implementing a pull grader.
 
 Sandboxing
 ==========
-The recommended way to sandbox python is by using [CodeJail](https://github.com/edx/codejail) in your grader. You can then import codejail.jail_code and run `jail_code("python", code...)`.
+The recommended way to sandbox python is by using [CodeJail](https://github.com/edx/codejail). Create a json file like this:
+
+	{
+		"python_bin": "/path/to/sandbox/python",
+		"user": "sandbox_username"
+	}
+
+And add `-j path/to/config.json` on the pullgrader command. You can then import codejail.jail_code and run `jail_code("python", code...)`.
 
 The old method of sandboxing is as follows:
 
