@@ -25,7 +25,7 @@ class XQueueClient(object):
 
     def _parse_response(self, response, is_reply=True):
         if response.status_code not in [200]:
-            error_message = "Server %s returned status_code=%d' % (url, r.status_code)"
+            error_message = "Server %s returned status_code=%d" % (url, r.status_code)
             log.error(error_message)
             return False, error_message
 

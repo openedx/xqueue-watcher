@@ -1,0 +1,15 @@
+{
+	"test-123": {
+		"SERVER": "http://127.0.0.1:18040",
+		"CONNECTIONS": 1,
+		"AUTH": ["lms", "lms"],
+		"HANDLERS": [
+			{
+				"HANDLER": "xqueue_watcher.jailedgrader.JailedGrader",
+				"KWARGS": {
+					"grader_root": "../data/6.00x/graders/"
+				}
+			}
+		]
+	}
+}
