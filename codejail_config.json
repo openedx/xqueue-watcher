@@ -1,4 +1,10 @@
 {
-	"python_bin": "python",
-	"user": "nobody"
+	"test-123": {
+		"python_bin": "python",
+		"user": "nobody"
+		},
+	"python": {
+		"python_bin": "/usr/bin/python",
+		"user": "nobody"
+		}
 }
