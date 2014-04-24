@@ -22,9 +22,6 @@ sys.path.append(SUPPORT_DIR)
 
 from gradelib import EndTest
 from graderutil import LANGUAGE
-# LANGUAGE is set in graderutil.py
-trans = gettext.translation('graders', localedir=THIS_DIR / "conf" / "locale", fallback=True, languages=[LANGUAGE])
-trans.install(unicode=True, names=None)
 
 
 def truncate(out):
@@ -47,14 +44,30 @@ def prepend_coding(code):
 
 
 class JailedGrader(Grader):
+    """
+    A grader implementation that uses codejail.
+    Instantiate it with grader_root="path/to/graders"
+    and optionally codejail_python="python name" (the name that you used to configure codejail)
+    """
+    def __init__(self, *args, **kwargs):
+        super(JailedGrader, self).__init__(*args, **kwargs)
+        self.locale_dir = self.grader_root / "conf" / "locale"
+        self.codejail_python = kwargs.get("codejail_python", "python")
+
+    def _enable_i18n(self, language):
+        trans = gettext.translation('graders', localedir=self.locale_dir, fallback=True, languages=[language])
+        trans.install(unicode=True, names=None)
+
     def _run(self, grader_path, thecode, seed):
         sub = tempfile.NamedTemporaryFile(suffix=".py", delete=False)
         try:
             sub.write(thecode.encode('utf-8'))
             sub.close()
             files = SUPPORT_FILES + [grader_path, sub.name]
+            if self.locale_dir.exists():
+                files.append(self.locale_dir)
             argv = ["run.py", path(grader_path).basename(), path(sub.name).basename(), seed]
-            r = jail_code("python", files=files, argv=argv)
+            r = jail_code(self.codejail_python, files=files, argv=argv)
             return r
         finally:
             sub.unlink(sub.name)
@@ -68,12 +81,6 @@ class JailedGrader(Grader):
     def grade(self, grader_path, grader_config, submission, sandbox=None):
         if type(submission) != unicode:
             self.log.warning("Submission is NOT unicode")
-        _ = unicode
-
-        # if sandbox:
-        #     log_evil = sandbox.record_suspicious_submission
-        # else:
-        #     log_evil = record_evil_locally
 
         results = {
             'errors': [],
@@ -81,6 +88,8 @@ class JailedGrader(Grader):
             'correct': False,
             'score': 0,
         }
+
+        self._enable_i18n(grader_config.get("lang", LANGUAGE))
 
         answer_path = path(grader_path).dirname() / 'answer.py'
         with open(answer_path) as f:
@@ -112,8 +121,6 @@ class JailedGrader(Grader):
 
         # Same seed for both runs
         seed = str(random.randint(0, 20000))
-        # Timeout for the runs
-        # timeout = int(grader_config.get('timeout', TIMEOUT))
 
         # Run the official answer, to get the expected output.
         expected_ok = False
@@ -227,3 +234,35 @@ class JailedGrader(Grader):
             ]
 
         return results
+
+
+def main(args):     # pragma: no cover
+    """
+    Prints a json list:
+    [ ("Test description", "value")
+
+    TODO: what about multi-file submission?
+    """
+    import logging
+    from pprint import pprint
+    from codejail.jail_code import configure
+    import getpass
+
+    logging.basicConfig(level=logging.DEBUG)
+    if len(args) != 2:
+        return
+
+    configure("python", sys.executable, user=getpass.getuser())
+    (grader_path, submission_path) = args
+
+    with open(submission_path) as f:
+        submission = f.read().decode('utf-8')
+
+    grader_config = {"lang": "eo"}
+    grader_path = path(grader_path).abspath()
+    g = JailedGrader(grader_root=grader_path.dirname().parent.parent)
+    pprint(g.grade(grader_path, grader_config, submission))
+
+
+if __name__ == '__main__':      # pragma: no cover
+    main(sys.argv[1:])

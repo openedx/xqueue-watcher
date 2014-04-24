@@ -26,7 +26,7 @@ class ManagerTests(unittest.TestCase):
                     {
                         'HANDLER': 'xqueue_watcher.grader.Grader',
                         'KWARGS': {
-                            'grader_file': path(__file__).dirname() / 'mock_grader.py',
+                            'gradepy': path(__file__).dirname() / 'mock_grader.py',
                         },
                         'SANDBOX': 'python'
                     }

@@ -78,18 +78,18 @@ class Grader(object):
   </div>
 """
 
-    def __init__(self, grader_file=None, sandbox=None, grader_root='/tmp/', logger_name=__name__):
+    def __init__(self, gradepy=None, sandbox=None, grader_root='/tmp/', logger_name=__name__):
         self.log = logging.getLogger(logger_name)
         self.sandbox = sandbox
         self.grader_root = path(grader_root)
-        self.grader_file = None
+        self.gradepy_file = None
 
-        if grader_file:
-            grader_file = path(grader_file)
-            if grader_file.exists():
-                self.grader_file = grader_file
+        if gradepy:
+            gradepy = path(gradepy)
+            if gradepy.exists():
+                self.gradepy_file = gradepy
             else:
-                raise Exception("%s does not exist" % grader_file)
+                raise Exception("%s does not exist" % gradepy)
 
     def __call__(self, content):
         q = multiprocessing.Queue()
@@ -128,14 +128,16 @@ class Grader(object):
             self.log.debug("Processing submission, grader payload: {0}".format(payload))
             relative_grader_path = grader_config['grader']
             grader_path = (self.grader_root / relative_grader_path).abspath()
-            if self.grader_file:
-                moddir = self.grader_file.dirname()
+            if self.gradepy_file:
+                # add the directory containing grade.py to the path (in order to import gradeutil,etc)
+                # and load the module called grade.py
+                moddir = self.gradepy_file.dirname()
                 if moddir not in sys.path:
                     sys.path.append(moddir)
                 try:
-                    grade = imp.load_source('grade', self.grader_file).grade
+                    grade = imp.load_source('grade', self.gradepy_file).grade
                 except (SyntaxError, AttributeError, NameError):
-                    self.log.error("grade function not found in %s", self.grader_file)
+                    self.log.error("grade function not found in %s", self.gradepy_file)
                     raise
             else:
                 grade = self.grade

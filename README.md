@@ -24,7 +24,7 @@ JSON configuration file
 					"HANDLER": "xqueue_watcher.grader.Grader",
 					"KWARGS": {
 						"grader_root": "../data/6.00x/graders/",
-						"grader_file": "../data/6.00x/graders/grade.py"
+						"gradepy": "../data/6.00x/graders/grade.py"
 					}
 				}
 			]
@@ -50,7 +50,7 @@ There are two ways of implementing a pull grader.
 	* `student_response`: student-supplied code
 	* `sandbox`: an optional module for handling sandboxed execution (*deprecated, see below*)  
 
-2. create a module containing a `grade` function with the signature described above and set the path to the module in the `grader_file` and `grader_root` kwargs of the handler.
+2. create a module containing a `grade` function with the signature described above and set the path to the module in the `gradepy` and `grader_root` kwargs of the handler.
 
 
 Sandboxing
