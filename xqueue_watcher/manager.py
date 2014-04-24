@@ -18,7 +18,7 @@ class Manager(object):
     """
     def __init__(self):
         self.clients = []
-        self.log = logging.getLogger('xserver.manager')
+        self.log = logging.getLogger('xqueue_watcher.manager')
         self.poll_time = 10
 
     def client_from_config(self, queue_name, config):
@@ -43,7 +43,7 @@ class Manager(object):
             # Graders should use codejail instead of this other sandbox implementation
             sandbox_config = handler_config.get('SANDBOX')
             if sandbox_config:
-                kw['sandbox'] = Sandbox(logging.getLogger('xserver.sandbox.{}'.format(queue_name)),
+                kw['sandbox'] = Sandbox(logging.getLogger('xqueuewatcher.sandbox.{}'.format(queue_name)),
                                         python_path=sandbox_config,
                                         do_sandboxing=True)
             handler = getattr(module, classname)

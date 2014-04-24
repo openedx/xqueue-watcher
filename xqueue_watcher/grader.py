@@ -78,7 +78,7 @@ class Grader(object):
   </div>
 """
 
-    def __init__(self, grader_file=None, sandbox=None, grader_root='/tmp/', logger_name='xserver.grader'):
+    def __init__(self, grader_file=None, sandbox=None, grader_root='/tmp/', logger_name=__name__):
         self.log = logging.getLogger(logger_name)
         self.sandbox = sandbox
         self.grader_root = path(grader_root)
@@ -107,7 +107,7 @@ class Grader(object):
 
     def process_item(self, content, queue=None):
         try:
-            statsd.increment('xserver.post-requests')
+            statsd.increment('xqueuewatcher.process-item')
             body = content['xqueue_body']
             files = content['xqueue_files']
 
@@ -120,7 +120,7 @@ class Grader(object):
             except ValueError as err:
                 # If parsing json fails, erroring is fine--something is wrong in the content.
                 # However, for debugging, still want to see what the problem is
-                statsd.increment('xserver.grader_payload_error')
+                statsd.increment('xqueuewatcher.grader_payload_error')
 
                 self.log.debug("error parsing: '{0}' -- {1}".format(payload, err))
                 raise
@@ -142,14 +142,14 @@ class Grader(object):
             start = time.time()
             results = grade(grader_path, grader_config, student_response, self.sandbox)
 
-            statsd.histogram('xserver.grading-time', time.time() - start)
+            statsd.histogram('xqueuewatcher.grading-time', time.time() - start)
 
             # Make valid JSON message
             reply = {'correct': results['correct'],
                      'score': results['score'],
                      'msg': self.render_results(results)}
 
-            statsd.increment('xserver.post-replies (non-exception)')
+            statsd.increment('xqueuewatcher.replies (non-exception)')
         except Exception as e:
             if queue:
                 queue.put(e)

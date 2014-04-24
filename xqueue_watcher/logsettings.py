@@ -63,7 +63,7 @@ def get_logger_config(log_dir,
                 'level': 'DEBUG',
                 'propagate': False
             },
-            'xserver': {
+            'xqueue_watcher': {
                 'handlers': handlers,
                 'level': 'DEBUG',
                 'propagate': False
