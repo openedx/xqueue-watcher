@@ -5,7 +5,7 @@ import requests
 import threading
 import multiprocessing
 
-log = logging.getLogger('xserver.' + __name__)
+log = logging.getLogger(__name__)
 
 
 class XQueueClient(object):
