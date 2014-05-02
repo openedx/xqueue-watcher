@@ -6,7 +6,6 @@ import imp
 import json
 import random
 import gettext
-import tempfile
 from path import path
 from codejail.jail_code import jail_code
 
@@ -58,18 +57,13 @@ class JailedGrader(Grader):
         trans.install(unicode=True, names=None)
 
     def _run(self, grader_path, thecode, seed):
-        sub = tempfile.NamedTemporaryFile(suffix=".py", delete=False)
-        try:
-            sub.write(thecode.encode('utf-8'))
-            sub.close()
-            files = SUPPORT_FILES + [grader_path, sub.name]
-            if self.locale_dir.exists():
-                files.append(self.locale_dir)
-            argv = ["-m", "grader_support.run", path(grader_path).basename(), path(sub.name).basename(), seed]
-            r = jail_code(self.codejail_python, files=files, argv=argv)
-            return r
-        finally:
-            sub.unlink(sub.name)
+        files = SUPPORT_FILES + [grader_path]
+        if self.locale_dir.exists():
+            files.append(self.locale_dir)
+        extra_files = [('submission.py', thecode.encode('utf-8'))]
+        argv = ["-m", "grader_support.run", path(grader_path).basename(), 'submission.py', seed]
+        r = jail_code(self.codejail_python, files=files, extra_files=extra_files, argv=argv)
+        return r
 
     def syntax_error(self, submission):
         """

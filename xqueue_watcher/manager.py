@@ -148,10 +148,15 @@ class Manager(object):
         Cleanly shutdown all clients.
         """
         self.log.info('shutting down')
-        for client in self.clients:
+        while self.clients:
+            client = self.clients.pop()
             client.shutdown()
             if client.processing:
-                client.join()
+                try:
+                    client.join()
+                except RuntimeError:
+                    self.log.exception("joining")
+                    sys.exit(9)
             self.log.info('%r done', client)
         self.log.info('done')
         sys.exit()
