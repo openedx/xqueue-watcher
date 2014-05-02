@@ -102,7 +102,7 @@ class Grader(object):
         else:
             return reply
 
-    def grade(self, grader_path, grader_config, student_response, sandbox):
+    def grade(self, grader_path, grader_config, student_response, sandbox=None):
         raise NotImplementedError("no grader defined")
 
     def process_item(self, content, queue=None):
@@ -153,6 +153,7 @@ class Grader(object):
 
             statsd.increment('xqueuewatcher.replies (non-exception)')
         except Exception as e:
+            self.log.exception("process_item")
             if queue:
                 queue.put(e)
             else:

@@ -22,17 +22,19 @@ class ManagerTests(unittest.TestCase):
         self.config = {
             'test1': {
                 'SERVER': 'http://test1',
+                'AUTH': ('test', 'test'),
                 'HANDLERS': [
                     {
                         'HANDLER': 'xqueue_watcher.grader.Grader',
                         'KWARGS': {
-                            'gradepy': path(__file__).dirname() / 'mock_grader.py',
+                            'gradepy': path(__file__).dirname() / 'fixtures'/ 'mock_grader.py',
                         },
                         'SANDBOX': 'python'
                     }
                 ]
             },
             'test2': {
+                'AUTH': ('test', 'test'),
                 'CONNECTIONS': 2,
                 'SERVER': 'http://test2',
                 'HANDLERS': [

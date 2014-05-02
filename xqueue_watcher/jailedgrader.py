@@ -1,3 +1,6 @@
+"""
+An implementation of a grader that uses codejail to sandbox submission execution.
+"""
 import sys
 import imp
 import json
@@ -7,22 +10,18 @@ import tempfile
 from path import path
 from codejail.jail_code import jail_code
 
+from grader_support.gradelib import EndTest
+from grader_support.graderutil import LANGUAGE
+import grader_support
+
 from .grader import Grader
 
 TIMEOUT = 1
 
-THIS_DIR = path(__file__).dirname()
-SUPPORT_DIR = THIS_DIR.parent / "grader_support"
+
 SUPPORT_FILES = [
-    SUPPORT_DIR / "run.py",
-    SUPPORT_DIR / "gradelib.py",
-    SUPPORT_DIR / "graderutil.py"
+    path(grader_support.__file__).dirname()
 ]
-sys.path.append(SUPPORT_DIR)
-
-from gradelib import EndTest
-from graderutil import LANGUAGE
-
 
 def truncate(out):
     """
@@ -66,7 +65,7 @@ class JailedGrader(Grader):
             files = SUPPORT_FILES + [grader_path, sub.name]
             if self.locale_dir.exists():
                 files.append(self.locale_dir)
-            argv = ["run.py", path(grader_path).basename(), path(sub.name).basename(), seed]
+            argv = ["-m", "grader_support.run", path(grader_path).basename(), path(sub.name).basename(), seed]
             r = jail_code(self.codejail_python, files=files, argv=argv)
             return r
         finally:
@@ -133,7 +132,7 @@ class JailedGrader(Grader):
             if expected_outputs:
                 expected = json.loads(expected_outputs)
                 expected_ok = True
-        except:
+        except Exception:
             expected_exc = sys.exc_info()
         else:
             # We just ran the official answer, nothing should have gone wrong, so check
@@ -161,7 +160,7 @@ class JailedGrader(Grader):
                 actual_ok = True
             else:
                 results['errors'].append(_("There was a problem running your solution (Staff debug: L379)."))
-        except:
+        except Exception:
             actual_exc = sys.exc_info()
         else:
             if actual_ok and actual['grader']['status'] == 'ok':
@@ -239,7 +238,7 @@ class JailedGrader(Grader):
 def main(args):     # pragma: no cover
     """
     Prints a json list:
-    [ ("Test description", "value")
+    [ ("Test description", "value") ]
 
     TODO: what about multi-file submission?
     """

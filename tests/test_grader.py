@@ -7,7 +7,7 @@ from Queue import Queue
 
 from xqueue_watcher import grader
 
-MYDIR = path(__file__).dirname()
+MYDIR = path(__file__).dirname() / 'fixtures'
 
 
 class GraderTests(unittest.TestCase):

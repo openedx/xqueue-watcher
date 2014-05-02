@@ -17,14 +17,14 @@ import random
 import sys
 
 import gradelib    # to set the random seed
-from graderutil import captured_stdout, format_exception, LANGUAGE
+import graderutil
 
 usage = "Usage: run.py GRADER SUBMISSION seed"
 
 # Install gettext for translation support. This gettext install works within the sandbox,
 # so the path to graders/conf/locale can be relative.
 # LANGUAGE is set in graderutil.py
-trans = gettext.translation('graders', localedir='conf/locale', fallback=True, languages=[LANGUAGE])
+trans = gettext.translation('graders', localedir='conf/locale', fallback=True, languages=[graderutil.LANGUAGE])
 trans.install(unicode=True, names=None)
 
 def run(grader_name, submission_name, seed=1):
@@ -79,7 +79,7 @@ def run(grader_name, submission_name, seed=1):
             grader = grader_mod.grader
         except:
             results['status'] = 'error'
-            results['exception'] = format_exception()
+            results['exception'] = graderutil.format_exception()
             output['exceptions'] += 1
     else:
         output['exceptions'] += 1
@@ -93,7 +93,7 @@ def run(grader_name, submission_name, seed=1):
             # results is a list of ("short description", "detailed desc", "output") tuples.
             try:
                 for test in grader.tests():
-                    with captured_stdout() as test_stdout:
+                    with graderutil.captured_stdout() as test_stdout:
                         try:
                             exception_output = ""
                             test(submission)
@@ -102,7 +102,7 @@ def run(grader_name, submission_name, seed=1):
                         except:
                             # The error could be either the grader code or the submission code,
                             # so hide information.
-                            exception_output = format_exception(main_file=submission_name, hide_file=True)
+                            exception_output = graderutil.format_exception(main_file=submission_name, hide_file=True)
                             output['exceptions'] += 1
                         else:
                             exception_output = ""
@@ -114,7 +114,7 @@ def run(grader_name, submission_name, seed=1):
                     output['results'].append((test.short_description, test.detailed_description, test_output))
             except:
                 output['grader']['status'] = 'error'
-                output['grader']['exception'] = format_exception()
+                output['grader']['exception'] = graderutil.format_exception()
                 output['exceptions'] += 1
         else:
             output['exceptions'] += 1
@@ -141,14 +141,14 @@ def import_captured(name, our_code=False):
         'status': 'notrun',
     }
     try:
-        with captured_stdout() as stdout:
+        with graderutil.captured_stdout() as stdout:
             mod = __import__(name)
     except:
         result['status'] = 'error'
         if our_code:
-            exc = format_exception()
+            exc = graderutil.format_exception()
         else:
-            exc = format_exception(main_file=name, hide_file=True)
+            exc = graderutil.format_exception(main_file=name, hide_file=True)
         result['exception'] = exc
         mod = None
     else:

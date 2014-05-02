@@ -5,6 +5,7 @@ import sys
 import time
 import json
 import signal
+import inspect
 import logging
 import importlib
 from path import path
@@ -48,7 +49,7 @@ class Manager(object):
                                         python_path=sandbox_config,
                                         do_sandboxing=True)
             handler = getattr(module, classname)
-            if kw:
+            if kw or inspect.isclass(handler):
                 # handler could be a function or a class
                 handler = handler(**kw)
             watcher.add_handler(handler)
