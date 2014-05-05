@@ -51,6 +51,7 @@ class JailedGrader(Grader):
         super(JailedGrader, self).__init__(*args, **kwargs)
         self.locale_dir = self.grader_root / "conf" / "locale"
         self.codejail_python = kwargs.get("codejail_python", "python")
+        self.fork_per_item = False # it's probably safe not to fork
 
     def _enable_i18n(self, language):
         trans = gettext.translation('graders', localedir=self.locale_dir, fallback=True, languages=[language])

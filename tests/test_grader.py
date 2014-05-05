@@ -115,3 +115,14 @@ class GraderTests(unittest.TestCase):
         del pl['xqueue_body']
 
         self.assertRaises(KeyError, g, pl)
+
+    def test_no_fork(self):
+        g = grader.Grader(fork_per_item=False, gradepy=MYDIR / 'mock_grader.py')
+        pl = self._make_payload({
+            'student_response': 'blah',
+            'grader_payload': json.dumps({
+                'grader': 'correct'
+                })
+            })
+        reply = g(pl)
+        self.assertEqual(reply['correct'], 1)
