@@ -41,13 +41,19 @@ class Manager(object):
 
             kw = handler_config.get('KWARGS', {})
 
-            # HACK
-            # Graders should use codejail instead of this other sandbox implementation
-            sandbox_config = handler_config.get('SANDBOX')
-            if sandbox_config:
-                kw['sandbox'] = Sandbox(logging.getLogger('xqueuewatcher.sandbox.{}'.format(queue_name)),
-                                        python_path=sandbox_config,
-                                        do_sandboxing=True)
+            # codejail configuration per handler
+            codejail_config = handler_config.get("CODEJAIL", None)
+            if codejail_config:
+                kw['codejail_python'] = self.enable_codejail(codejail_config)
+            else:
+                # HACK
+                # Graders should use codejail instead of this other sandbox implementation
+                sandbox_config = handler_config.get('SANDBOX')
+                if sandbox_config:
+                    kw['sandbox'] = Sandbox(logging.getLogger('xqueuewatcher.sandbox.{}'.format(queue_name)),
+                                            python_path=sandbox_config,
+                                            do_sandboxing=True)
+
             handler = getattr(module, classname)
             if kw or inspect.isclass(handler):
                 # handler could be a function or a class
@@ -76,30 +82,21 @@ class Manager(object):
             logging.basicConfig(level="DEBUG")
         self.log = logging.getLogger('xqueue_watcher.manager')
 
-        codejail_config = directory / 'codejail.json'
-        if codejail_config.exists():
-            self.enable_codejail(json.load(codejail_config.open()))
-
         for watcher in directory.files('*.json'):
-            if watcher.basename() in ('logging.json', 'codejail.json'):
-                continue
-            self.configure(json.load(watcher.open()))
+            if watcher.basename() != 'logging.json':
+                self.configure(json.load(watcher.open()))
 
     def enable_codejail(self, codejail_config):
         """
         Enable codejail for the process.
         codejail_config is a dict like this:
         {
-            "python": {
-                "python_bin": "/path/to/python",
-                "user": "sandbox_username",
-                "limits": {
-                    "CPU": 1,
-                    ...
-                }
-            },
-            "other-python": {
-                "python_bin": "/path/to/other/python"
+            "name": "python",
+            "python_bin": "/path/to/python",
+            "user": "sandbox_username",
+            "limits": {
+                "CPU": 1,
+                ...
             }
         }
         limits are optional
@@ -107,15 +104,16 @@ class Manager(object):
         """
         import codejail.jail_code
         import getpass
-        for cj_name, config in codejail_config.items():
-            python_bin = config.get('python_bin')
-            if python_bin:
-                user = config.get('user', getpass.getuser())
-                codejail.jail_code.configure(cj_name, python_bin, user=user)
-                limits = config.get("limits", {})
-                for name, value in limits.items():
-                    codejail.jail_code.set_limit(name, value)
-                self.log.info("configured codejail -> %s %s %s", cj_name, python_bin, user)
+        name = codejail_config["name"]
+        python_bin = codejail_config['python_bin']
+        user = codejail_config.get('user', getpass.getuser())
+
+        codejail.jail_code.configure(name, python_bin, user=user)
+        limits = codejail_config.get("limits", {})
+        for name, value in limits.items():
+            codejail.jail_code.set_limit(name, value)
+        self.log.info("configured codejail -> %s %s %s", name, python_bin, user)
+        return name
 
     def start(self):
         """

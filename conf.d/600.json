@@ -8,7 +8,7 @@
                 "HANDLER": "xqueue_watcher.grader.Grader",
                 "KWARGS": {
                     "grader_root": "../data/6.00x/graders/",
-                    "grader_file": "../data/6.00x/graders/grade.py"
+                    "gradepy": "../data/6.00x/graders/grade.py"
                 }
             }
         ]

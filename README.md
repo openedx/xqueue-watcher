@@ -7,9 +7,7 @@ This is an implementation of a polling [XQueue](https://github.com/edx/xqueue) c
 Running
 =======
 
-`python -m xqueue_watcher -s [settings module]`  
-or  
-`python -m xqueue_watcher -f [settings json file]`
+`python -m xqueue_watcher -d [path to settings directory]`
 
 
 JSON configuration file
@@ -23,8 +21,8 @@ JSON configuration file
 				{
 					"HANDLER": "xqueue_watcher.grader.Grader",
 					"KWARGS": {
-						"grader_root": "../data/6.00x/graders/",
-						"gradepy": "../data/6.00x/graders/grade.py"
+						"grader_root": "/path/to/course/graders/",
+						"gradepy": "/path/to/course/graders/grade.py"
 					}
 				}
 			]
@@ -55,16 +53,15 @@ There are two ways of implementing a pull grader.
 
 Sandboxing
 ==========
-The recommended way to sandbox python is by using [CodeJail](https://github.com/edx/codejail). Create a json file like this:
+The recommended way to sandbox python is by using [CodeJail](https://github.com/edx/codejail). In your handler configuration, add:
 
-	{
-		"python": {
-			"python_bin": "/path/to/sandbox/python",
-			"user": "sandbox_username"
-		}
+	"CODEJAIL": {
+		"name": "python",
+		"python_bin": "/path/to/sandbox/python",
+		"user": "sandbox_username"
 	}
 
-And add `-j path/to/config.json` on the xqueue_watcher command. You can then import codejail.jail_code and run `jail_code("python", code...)`. You can define multiple sandboxes and use them as in `jail_code("special-python", ...)`
+Then, `codejail_python` will automatically be added to the kwargs for your handler. You can then import codejail.jail_code and run `jail_code("python", code...)`. You can define multiple sandboxes and use them as in `jail_code("special-python", ...)`
 
 The old method of sandboxing is as follows:
 
