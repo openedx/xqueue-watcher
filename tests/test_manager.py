@@ -61,15 +61,21 @@ class ManagerTests(unittest.TestCase):
     @unittest.skipUnless(HAS_CODEJAIL, "Codejail not installed")
     def test_codejail_config(self):
         config = {
-            "python_bin": "/usr/bin/python",
-            "user": "nobody",
-            "limits": {
-                "CPU": 2,
-                "VMEM": 1024
+            "python": {
+                "python_bin": "/usr/bin/python",
+                "user": "nobody",
+                "limits": {
+                    "CPU": 2,
+                    "VMEM": 1024
+                }
+            },
+            "other-python": {
+                "python_bin": "/usr/local/bin"
             }
         }
         self.m.enable_codejail(config)
         self.assertTrue(codejail.jail_code.is_configured("python"))
+        self.assertTrue(codejail.jail_code.is_configured("other-python"))
 
         # now we'll see if the codejail config is inherited in the handler subprocess
         handler_config = self.config['test1'].copy()

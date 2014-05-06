@@ -58,11 +58,13 @@ Sandboxing
 The recommended way to sandbox python is by using [CodeJail](https://github.com/edx/codejail). Create a json file like this:
 
 	{
-		"python_bin": "/path/to/sandbox/python",
-		"user": "sandbox_username"
+		"python": {
+			"python_bin": "/path/to/sandbox/python",
+			"user": "sandbox_username"
+		}
 	}
 
-And add `-j path/to/config.json` on the xqueue_watcher command. You can then import codejail.jail_code and run `jail_code("python", code...)`.
+And add `-j path/to/config.json` on the xqueue_watcher command. You can then import codejail.jail_code and run `jail_code("python", code...)`. You can define multiple sandboxes and use them as in `jail_code("special-python", ...)`
 
 The old method of sandboxing is as follows:
 

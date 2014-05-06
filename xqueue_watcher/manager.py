@@ -67,24 +67,32 @@ class Manager(object):
         Enable codejail for the process.
         codejail_config is a dict like this:
         {
-            "python_bin": "/path/to/python",
-            "user": "sandbox_username",
-            "limits": {
-                "CPU": 1,
-                ...
+            "python": {
+                "python_bin": "/path/to/python",
+                "user": "sandbox_username",
+                "limits": {
+                    "CPU": 1,
+                    ...
+                }
+            },
+            "other-python": {
+                "python_bin": "/path/to/other/python"
             }
         }
         limits are optional
+        user defaults to the current user
         """
-        python_bin = codejail_config.get('python_bin')
-        if python_bin:
-            import codejail.jail_code
-            user = codejail_config['user']
-            codejail.jail_code.configure("python", python_bin, user=user)
-            limits = codejail_config.get("limits", {})
-            for name, value in limits.items():
-                codejail.jail_code.set_limit(name, value)
-            self.log.info("configured codejail -> %s %s", python_bin, user)
+        import codejail.jail_code
+        import getpass
+        for cj_name, config in codejail_config.items():
+            python_bin = config.get('python_bin')
+            if python_bin:
+                user = config.get('user', getpass.getuser())
+                codejail.jail_code.configure(cj_name, python_bin, user=user)
+                limits = config.get("limits", {})
+                for name, value in limits.items():
+                    codejail.jail_code.set_limit(name, value)
+                self.log.info("configured codejail -> %s %s %s", cj_name, python_bin, user)
 
     def start(self):
         """
