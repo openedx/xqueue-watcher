@@ -156,12 +156,9 @@ class ManagerTests(unittest.TestCase):
         self.assertRaises(SystemExit, self.m.wait)
 
     def test_main(self):
-        self.assertEqual(manager.main([]), -1)
+        self.assertRaises(SystemExit, manager.main, [])
         mydir = path(__file__).dirname()
-        args = ['-f', mydir / 'test_config.json', '-l', mydir / 'test_logging.json', '-j', mydir / "test_cj.json"]
-        self.assertEqual(manager.main(args), 0)
-
-        args = ['-s', 'tests.fake_settings']
+        args = ['-d', mydir / "fixtures/config"]
         self.assertEqual(manager.main(args), 0)
 
 

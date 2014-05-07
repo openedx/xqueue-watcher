@@ -7,6 +7,7 @@ import json
 import signal
 import logging
 import importlib
+from path import path
 import logging.config
 
 from .sandbox import Sandbox
@@ -18,8 +19,8 @@ class Manager(object):
     """
     def __init__(self):
         self.clients = []
-        self.log = logging.getLogger('xqueue_watcher.manager')
         self.poll_time = 10
+        self.log = logging
 
     def client_from_config(self, queue_name, config):
         """
@@ -61,6 +62,27 @@ class Manager(object):
             for i in range(config.get('CONNECTIONS', 1)):
                 watcher = self.client_from_config(queue_name, config)
                 self.clients.append(watcher)
+
+    def configure_from_directory(self, directory):
+        """
+        Load configuration files from a directory
+        """
+        directory = path(directory)
+        log_config = directory / 'logging.json'
+        if log_config.exists():
+            logging.config.dictConfig(json.load(log_config.open()))
+        else:
+            logging.basicConfig(level="DEBUG")
+        self.log = logging.getLogger('xqueue_watcher.manager')
+
+        codejail_config = directory / 'codejail.json'
+        if codejail_config.exists():
+            self.enable_codejail(json.load(codejail_config.open()))
+
+        for watcher in directory.files('*.json'):
+            if watcher.basename() in ('logging.json', 'codejail.json'):
+                continue
+            self.configure(json.load(watcher.open()))
 
     def enable_codejail(self, codejail_config):
         """
@@ -137,30 +159,15 @@ class Manager(object):
 def main(args=None):
     import argparse
     parser = argparse.ArgumentParser(prog="xqueue_watcher", description="Run grader from settings")
-    parser.add_argument('-s', '--settings', help='settings module to load')
-    parser.add_argument('-f', '--config', type=argparse.FileType('rb'), help='settings json file to load')
-    parser.add_argument('-l', '--log-config', type=argparse.FileType('rb'), help='logger settings json file to load')
-    parser.add_argument('-j', '--jail-config', type=argparse.FileType('rb'), help='codejail settings json file to load')
+    parser.add_argument('-d', '--confd', required=True, help='load configuration from directory')
 
     args = parser.parse_args(args)
 
-    if args.settings:
-        settings = importlib.import_module(args.settings)
-        logging.config.dictConfig(settings.LOGGING)
-        config = settings.XQUEUES
-    elif args.config:
-        config = json.load(args.config)
-    else:
-        print("No configuration defined")
-        return -1
-    if args.log_config:
-        logging.config.dictConfig(json.load(args.log_config))
-
     manager = Manager()
-    if args.jail_config:
-        manager.enable_codejail(json.load(args.jail_config))
+    manager.configure_from_directory(args.confd)
 
-    manager.configure(config)
+    if not manager.clients:
+        print("No xqueue watchers configured")
     manager.start()
     manager.wait()
     return 0
