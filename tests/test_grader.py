@@ -7,7 +7,7 @@ from Queue import Queue
 
 from xqueue_watcher import grader
 
-MYDIR = path(__file__).dirname()
+MYDIR = path(__file__).dirname() / 'fixtures'
 
 
 class GraderTests(unittest.TestCase):
@@ -39,10 +39,10 @@ class GraderTests(unittest.TestCase):
         self.assertRaises(NotImplementedError, g.process_item, pl)
 
         # grader that doesn't exist
-        self.assertRaises(Exception, grader.Grader, grader_file='/asdfasdfdasf.py')
+        self.assertRaises(Exception, grader.Grader, gradepy='/asdfasdfdasf.py')
 
     def test_bad_grader(self):
-        g = grader.Grader(grader_file=MYDIR / 'not_python_grader')
+        g = grader.Grader(gradepy=MYDIR / 'not_python_grader')
         pl = self._make_payload({
             'student_response': 'blah',
             'grader_payload': json.dumps({
@@ -55,7 +55,7 @@ class GraderTests(unittest.TestCase):
         # remove mydir from path to ensure we can still find the file
         sys.path.remove(MYDIR)
 
-        g = grader.Grader(grader_file=MYDIR / 'mock_grader.py')
+        g = grader.Grader(gradepy=MYDIR / 'mock_grader.py')
         pl = self._make_payload({
             'student_response': 'blah',
             'grader_payload': json.dumps({
@@ -68,7 +68,7 @@ class GraderTests(unittest.TestCase):
         self.assertEqual(reply['score'], 1)
 
     def test_incorrect_response(self):
-        g = grader.Grader(grader_file=MYDIR / 'mock_grader.py')
+        g = grader.Grader(gradepy=MYDIR / 'mock_grader.py')
         pl = self._make_payload({
             'student_response': 'blah',
             'grader_payload': json.dumps({
@@ -82,7 +82,7 @@ class GraderTests(unittest.TestCase):
         self.assertEqual(reply['score'], 0)
 
     def test_response_on_queue(self):
-        g = grader.Grader(grader_file=MYDIR / 'mock_grader.py')
+        g = grader.Grader(gradepy=MYDIR / 'mock_grader.py')
         pl = self._make_payload({
             'student_response': 'blah',
             'grader_payload': json.dumps({
@@ -102,7 +102,7 @@ class GraderTests(unittest.TestCase):
             self.assertEqual(e, popped)
 
     def test_subprocess(self):
-        g = grader.Grader(grader_file=MYDIR / 'mock_grader.py')
+        g = grader.Grader(gradepy=MYDIR / 'mock_grader.py')
         pl = self._make_payload({
             'student_response': 'blah',
             'grader_payload': json.dumps({
@@ -115,3 +115,14 @@ class GraderTests(unittest.TestCase):
         del pl['xqueue_body']
 
         self.assertRaises(KeyError, g, pl)
+
+    def test_no_fork(self):
+        g = grader.Grader(fork_per_item=False, gradepy=MYDIR / 'mock_grader.py')
+        pl = self._make_payload({
+            'student_response': 'blah',
+            'grader_payload': json.dumps({
+                'grader': 'correct'
+                })
+            })
+        reply = g(pl)
+        self.assertEqual(reply['correct'], 1)

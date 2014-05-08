@@ -9,7 +9,7 @@ log = logging.getLogger(__name__)
 
 
 class XQueueClient(object):
-    def __init__(self, queue_name, xqueue_server='http://localhost:18040', auth=('lms', 'lms')):
+    def __init__(self, queue_name, xqueue_server='http://localhost:18040', auth=('user', 'pass')):
         super(XQueueClient, self).__init__()
         self.session = requests.session()
         self.xqueue_server = xqueue_server
@@ -25,7 +25,7 @@ class XQueueClient(object):
 
     def _parse_response(self, response, is_reply=True):
         if response.status_code not in [200]:
-            error_message = "Server %s returned status_code=%d' % (url, r.status_code)"
+            error_message = "Server %s returned status_code=%d" % (response.url, response.status_code)
             log.error(error_message)
             return False, error_message
 
@@ -68,6 +68,8 @@ class XQueueClient(object):
                     return (False, "Could not log in")
 
     def _login(self):
+        if self.username is None:
+            return True
         url = self.xqueue_server + '/xqueue/login/'
         log.debug("Trying to login to {0} with user: {1} and pass {2}".format(url, self.username, self.password))
         response = self.session.request('post', url, data={
