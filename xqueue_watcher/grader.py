@@ -81,26 +81,16 @@ class Grader(object):
   </div>
 """
 
-    def __init__(self, grader_root='/tmp/', fork_per_item=True, gradepy=None, sandbox=None, logger_name=__name__):
+    def __init__(self, grader_root='/tmp/', fork_per_item=True, logger_name=__name__):
         """
-        gradepy = path to grade.py (obsolete)
-        sandbox = sandbox object
         grader_root = root path to graders
         fork_per_item = fork a process for every request
         logger_name = name of logger
         """
         self.log = logging.getLogger(logger_name)
-        self.sandbox = sandbox
         self.grader_root = path(grader_root)
-        self.gradepy_file = None
 
         self.fork_per_item = fork_per_item
-        if gradepy:
-            gradepy = path(gradepy)
-            if gradepy.exists():
-                self.gradepy_file = gradepy
-            else:
-                raise Exception("%s does not exist" % gradepy)
 
     def __call__(self, content):
         if self.fork_per_item:
@@ -116,7 +106,7 @@ class Grader(object):
         else:
             return self.process_item(content)
 
-    def grade(self, grader_path, grader_config, student_response, sandbox=None):
+    def grade(self, grader_path, grader_config, student_response):
         raise NotImplementedError("no grader defined")
 
     def process_item(self, content, queue=None):
@@ -142,21 +132,8 @@ class Grader(object):
             self.log.debug("Processing submission, grader payload: {0}".format(payload))
             relative_grader_path = grader_config['grader']
             grader_path = (self.grader_root / relative_grader_path).abspath()
-            if self.gradepy_file:
-                # add the directory containing grade.py to the path (in order to import gradeutil,etc)
-                # and load the module called grade.py
-                moddir = self.gradepy_file.dirname()
-                if moddir not in sys.path:
-                    sys.path.append(moddir)
-                try:
-                    grade = imp.load_source('grade', self.gradepy_file).grade
-                except (SyntaxError, AttributeError, NameError):
-                    self.log.error("grade function not found in %s", self.gradepy_file)
-                    raise
-            else:
-                grade = self.grade
             start = time.time()
-            results = grade(grader_path, grader_config, student_response, self.sandbox)
+            results = self.grade(grader_path, grader_config, student_response)
 
             statsd.histogram('xqueuewatcher.grading-time', time.time() - start)
 

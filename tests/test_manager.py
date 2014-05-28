@@ -6,7 +6,7 @@ import time
 import sys
 
 import logging
-from xqueue_watcher import manager, sandbox
+from xqueue_watcher import manager
 from tests.test_xqueue_client import MockXQueueServer
 
 try:
@@ -25,11 +25,7 @@ class ManagerTests(unittest.TestCase):
                 'AUTH': ('test', 'test'),
                 'HANDLERS': [
                     {
-                        'HANDLER': 'xqueue_watcher.grader.Grader',
-                        'KWARGS': {
-                            'gradepy': path(__file__).dirname() / 'fixtures'/ 'mock_grader.py',
-                        },
-                        'SANDBOX': 'python'
+                        'HANDLER': 'tests.test_grader.MockGrader',
                     }
                 ]
             },
@@ -55,9 +51,7 @@ class ManagerTests(unittest.TestCase):
         self.m.configure(self.config)
         self.assertEqual(len(self.m.clients), 3)
         for c in self.m.clients:
-            if c.queue_name == 'test1':
-                self.assertTrue(c.handlers[0].sandbox is not None)
-            elif c.queue_name == 'test2':
+            if c.queue_name == 'test2':
                 self.assertEqual(c.xqueue_server, 'http://test2')
 
     @unittest.skipUnless(HAS_CODEJAIL, "Codejail not installed")
@@ -162,25 +156,3 @@ class ManagerTests(unittest.TestCase):
         mydir = path(__file__).dirname()
         args = ['-d', mydir / "fixtures/config"]
         self.assertEqual(manager.main(args), 0)
-
-
-class SandboxTests(unittest.TestCase):
-    def test_default_sandboxing(self):
-        s = sandbox.Sandbox(logging.getLogger())
-        self.assertTrue(s.do_sandboxing)
-        self.assertEqual(s.sandbox_cmd_list(), ['sudo', '-u', 'sandbox', 'python'])
-
-    def test_no_sandbox(self):
-        s = sandbox.Sandbox(logging.getLogger(), do_sandboxing=False)
-        self.assertFalse(s.do_sandboxing)
-        self.assertEqual(s.sandbox_cmd_list(), ['python'])
-
-    def test_different_python(self):
-        s = sandbox.Sandbox(logging.getLogger(), do_sandboxing=False, python_path='/not/python')
-        self.assertEqual(s.sandbox_cmd_list(), ['/not/python'])
-
-    def test_record_suspicious(self):
-        ml = Mock()
-        s = sandbox.Sandbox(ml)
-        s.record_suspicious_submission('test', 'my code')
-        ml.warning.assert_called_with('Suspicious code: test, my code')

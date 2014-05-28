@@ -22,6 +22,7 @@ SUPPORT_FILES = [
     path(grader_support.__file__).dirname()
 ]
 
+
 def truncate(out):
     """
     Truncate test output that's too long.  This is per-test.
@@ -51,7 +52,7 @@ class JailedGrader(Grader):
         self.codejail_python = kwargs.pop("codejail_python", "python")
         super(JailedGrader, self).__init__(*args, **kwargs)
         self.locale_dir = self.grader_root / "conf" / "locale"
-        self.fork_per_item = False # it's probably safe not to fork
+        self.fork_per_item = False  # it's probably safe not to fork
 
     def _enable_i18n(self, language):
         trans = gettext.translation('graders', localedir=self.locale_dir, fallback=True, languages=[language])
@@ -72,7 +73,7 @@ class JailedGrader(Grader):
         """
         return False
 
-    def grade(self, grader_path, grader_config, submission, sandbox=None):
+    def grade(self, grader_path, grader_config, submission):
         if type(submission) != unicode:
             self.log.warning("Submission is NOT unicode")
 
@@ -122,7 +123,7 @@ class JailedGrader(Grader):
         try:
             # If we want a factor of two speedup for now: trust the staff solution to
             # avoid hitting the sandbox. (change run to run_trusted)
-            expected_outputs = None # in case run_trusted raises an exception.
+            expected_outputs = None  # in case run_trusted raises an exception.
             expected_outputs = self._run(grader_path, processed_answer, seed).stdout
             if expected_outputs:
                 expected = json.loads(expected_outputs)
@@ -133,14 +134,17 @@ class JailedGrader(Grader):
             # We just ran the official answer, nothing should have gone wrong, so check
             # everything, and note it as bad if anything is wrong.
             if expected_ok:
-                if expected['exceptions'] or expected['grader']['status'] != 'ok' or expected['submission']['status'] != 'ok':
+                if expected['exceptions'] \
+                        or expected['grader']['status'] != 'ok' \
+                        or expected['submission']['status'] != 'ok':
                     expected_ok = False
 
         if not expected_ok:
             # We couldn't run the official answer properly, bail out, but don't show
             # details to the student, since none of it is their code.
             results['errors'].append(_('There was a problem running the staff solution (Staff debug: L364)'))
-            self.log.error("Couldn't run staff solution. grader = %s, output: %r", grader_path, expected_outputs, exc_info=expected_exc)
+            self.log.error("Couldn't run staff solution. grader = %s, output: %r",
+                           grader_path, expected_outputs, exc_info=expected_exc)
             return results
 
         # The expected code ran fine, go ahead and run the student submission.
@@ -171,7 +175,8 @@ class JailedGrader(Grader):
         # If something went wrong, then don't continue
         if not actual_ok:
             results['errors'].append(_("We couldn't run your solution (Staff debug: L397)."))
-            self.log.error("Couldn't run student solution. grader = %s, output: %r", grader_path, actual_outputs, exc_info=actual_exc)
+            self.log.error("Couldn't run student solution. grader = %s, output: %r",
+                           grader_path, actual_outputs, exc_info=actual_exc)
             return results
 
         # Compare actual and expected through the grader tests, but only if we haven't
@@ -182,7 +187,7 @@ class JailedGrader(Grader):
             actual_results = actual['results']
             if len(expected_results) != len(actual_results):
                 results['errors'].append(_('Something went wrong: different numbers of '
-                                        'tests ran for your code and for our reference code.'))
+                                         'tests ran for your code and for our reference code.'))
                 return results
 
             for test, exp, act in zip(grader.tests(), expected_results, actual_results):
@@ -198,8 +203,8 @@ class JailedGrader(Grader):
                 try:
                     correct = test.compare_results(exp_output, act_output)
                 except EndTest as e:
-                    # Allows a grader's compare_results function to raise an EndTest exception 
-                    # (defined in gradelib.py). This enables the checker to print out an error 
+                    # Allows a grader's compare_results function to raise an EndTest exception
+                    # (defined in gradelib.py). This enables the checker to print out an error
                     # message to the student, which will be appended to the end of stdout.
                     if e is not None:
                         act_output += '\n'
@@ -212,9 +217,7 @@ class JailedGrader(Grader):
                 corrects.append(correct)
                 if not grader_config.get("hide_output", False):
                     results['tests'].append((exp_short_desc, exp_long_desc,
-                                        correct, exp_output, act_output))
-
-
+                                            correct, exp_output, act_output))
 
         # If there were no tests run, then there was probably an error, so it's incorrect
         n = len(corrects)

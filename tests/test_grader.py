@@ -10,6 +10,41 @@ from xqueue_watcher import grader
 MYDIR = path(__file__).dirname() / 'fixtures'
 
 
+class MockGrader(grader.Grader):
+    def grade(self, grader_path, grader_config, student_response):
+        tests = []
+        errors = []
+        correct = 0
+        score = 0
+        if grader_path.endswith('/correct'):
+            correct = 1
+            score = 1
+            tests.append(('short', 'long', True, 'expected', 'actual'))
+            tests.append(('short', '', True, 'expected', 'actual'))
+        elif grader_path.endswith('/incorrect'):
+            tests.append(('short', 'long', False, 'expected', 'actual'))
+            errors.append('THIS IS AN ERROR')
+            errors.append(u'\x00\xc3\x83\xc3\xb8\x02')
+
+        try:
+            import codejail.jail_code
+        except ImportError:
+            tests.append(("codejail", "codejail not installed", True, "", ""))
+        else:
+            if codejail.jail_code.is_configured("python"):
+                tests.append(("codejail", "codejail configured", True, "", ""))
+            else:
+                tests.append(("codejail", "codejail not configured", True, "", ""))
+
+        results = {
+            'correct': correct,
+            'score': score,
+            'tests': tests,
+            'errors': errors,
+        }
+        return results
+
+
 class GraderTests(unittest.TestCase):
     def _make_payload(self, body, files=''):
         return {
@@ -18,7 +53,7 @@ class GraderTests(unittest.TestCase):
             }
 
     def test_bad_payload(self):
-        g = grader.Grader()
+        g = MockGrader()
 
         self.assertRaises(KeyError, g.process_item, {})
         self.assertRaises(ValueError, g.process_item, {'xqueue_body': '', 'xqueue_files': ''})
@@ -41,21 +76,8 @@ class GraderTests(unittest.TestCase):
         # grader that doesn't exist
         self.assertRaises(Exception, grader.Grader, gradepy='/asdfasdfdasf.py')
 
-    def test_bad_grader(self):
-        g = grader.Grader(gradepy=MYDIR / 'not_python_grader')
-        pl = self._make_payload({
-            'student_response': 'blah',
-            'grader_payload': json.dumps({
-                'grader': '/tmp/grader.py'
-                })
-            })
-        self.assertRaises(NameError, g.process_item, pl)
-
     def test_correct_response(self):
-        # remove mydir from path to ensure we can still find the file
-        sys.path.remove(MYDIR)
-
-        g = grader.Grader(gradepy=MYDIR / 'mock_grader.py')
+        g = MockGrader()
         pl = self._make_payload({
             'student_response': 'blah',
             'grader_payload': json.dumps({
@@ -68,7 +90,7 @@ class GraderTests(unittest.TestCase):
         self.assertEqual(reply['score'], 1)
 
     def test_incorrect_response(self):
-        g = grader.Grader(gradepy=MYDIR / 'mock_grader.py')
+        g = MockGrader()
         pl = self._make_payload({
             'student_response': 'blah',
             'grader_payload': json.dumps({
@@ -82,7 +104,7 @@ class GraderTests(unittest.TestCase):
         self.assertEqual(reply['score'], 0)
 
     def test_response_on_queue(self):
-        g = grader.Grader(gradepy=MYDIR / 'mock_grader.py')
+        g = MockGrader()
         pl = self._make_payload({
             'student_response': 'blah',
             'grader_payload': json.dumps({
@@ -102,7 +124,7 @@ class GraderTests(unittest.TestCase):
             self.assertEqual(e, popped)
 
     def test_subprocess(self):
-        g = grader.Grader(gradepy=MYDIR / 'mock_grader.py')
+        g = MockGrader()
         pl = self._make_payload({
             'student_response': 'blah',
             'grader_payload': json.dumps({
@@ -117,7 +139,7 @@ class GraderTests(unittest.TestCase):
         self.assertRaises(KeyError, g, pl)
 
     def test_no_fork(self):
-        g = grader.Grader(fork_per_item=False, gradepy=MYDIR / 'mock_grader.py')
+        g = MockGrader(fork_per_item=False)
         pl = self._make_payload({
             'student_response': 'blah',
             'grader_payload': json.dumps({
