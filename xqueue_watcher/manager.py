@@ -11,8 +11,6 @@ import importlib
 from path import path
 import logging.config
 
-from .sandbox import Sandbox
-
 
 class Manager(object):
     """
@@ -31,8 +29,8 @@ class Manager(object):
 
         klass = getattr(client, config.get('CLASS', 'XQueueClientThread'))
         watcher = klass(queue_name,
-                       xqueue_server=config.get('SERVER', 'http://localhost:18040'),
-                       auth=config.get('AUTH', (None, None)))
+                        xqueue_server=config.get('SERVER', 'http://localhost:18040'),
+                        auth=config.get('AUTH', (None, None)))
 
         for handler_config in config.get('HANDLERS', []):
             handler_name = handler_config['HANDLER']
@@ -45,14 +43,6 @@ class Manager(object):
             codejail_config = handler_config.get("CODEJAIL", None)
             if codejail_config:
                 kw['codejail_python'] = self.enable_codejail(codejail_config)
-            else:
-                # HACK
-                # Graders should use codejail instead of this other sandbox implementation
-                sandbox_config = handler_config.get('SANDBOX')
-                if sandbox_config:
-                    kw['sandbox'] = Sandbox(logging.getLogger('xqueuewatcher.sandbox.{}'.format(queue_name)),
-                                            python_path=sandbox_config,
-                                            do_sandboxing=True)
 
             handler = getattr(module, classname)
             if kw or inspect.isclass(handler):
