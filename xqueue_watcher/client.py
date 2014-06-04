@@ -2,6 +2,7 @@ import time
 import json
 import logging
 import requests
+from requests.auth import HTTPBasicAuth
 import threading
 import multiprocessing
 
@@ -20,9 +21,7 @@ class XQueueClient(object):
         self.username, self.password = xqueue_auth
 
         if http_basic_auth is not None:
-            self.auth = requests.auth.HTTPBasicAuth(tuple(http_basic_auth))
-        else:
-            self.auth = None
+            self.http_basic_auth = HTTPBasicAuth(*http_basic_auth)
 
         self.running = True
         self.processing = False
