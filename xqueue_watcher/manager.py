@@ -20,6 +20,7 @@ class Manager(object):
         self.clients = []
         self.poll_time = 10
         self.log = logging
+        self.requests_basic_auth = None
 
     def client_from_config(self, queue_name, config):
         """
@@ -62,19 +63,33 @@ class Manager(object):
 
     def configure_from_directory(self, directory):
         """
-        Load configuration files from a directory
+        Load configuration files from the config_root
+        and one or more queue configurations from a conf.d
+        directory relative to the config_root
         """
         directory = path(directory)
+
         log_config = directory / 'logging.json'
         if log_config.exists():
-            logging.config.dictConfig(json.load(log_config.open()))
+            with open(log_config) as config:
+                logging.config.dictConfig(json.load(config))
         else:
             logging.basicConfig(level="DEBUG")
         self.log = logging.getLogger('xqueue_watcher.manager')
 
-        for watcher in directory.files('*.json'):
-            if watcher.basename() != 'logging.json':
-                self.configure(json.load(watcher.open()))
+        app_config = directory / 'xqwatcher.json'
+
+        if app_config.exists():
+            with open(app_config) as config:
+                AUTH_TOKENS = json.load(config)
+                self.requests_basic_auth = AUTH_TOKENS.get('REQUESTS_BASIC_AUTH',None)
+                self.poll_time = AUTH_TOKENS.get("POLL_TIME",10)
+
+        confd = directory / 'conf.d'
+
+        for watcher in confd.files('*.json'):
+            with open(watcher) as queue_config:
+                self.configure(json.load(queue_config))
 
     def enable_codejail(self, codejail_config):
         """
@@ -153,12 +168,15 @@ class Manager(object):
 def main(args=None):
     import argparse
     parser = argparse.ArgumentParser(prog="xqueue_watcher", description="Run grader from settings")
-    parser.add_argument('-d', '--confd', required=True, help='load configuration from directory')
-
+    parser.add_argument('-d', '--config_root', required=True,
+                        help='Configuration root from which to load general '
+                             'watcher configuration. Queue configuration '
+                             'is loaded from a conf.d directory relative to '
+                             'the root')
     args = parser.parse_args(args)
 
     manager = Manager()
-    manager.configure_from_directory(args.confd)
+    manager.configure_from_directory(args.config_root)
 
     if not manager.clients:
         print("No xqueue watchers configured")
