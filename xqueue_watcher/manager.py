@@ -82,9 +82,9 @@ class Manager(object):
 
         if app_config.exists():
             with open(app_config) as config:
-                AUTH_TOKENS = json.load(config)
-                self.http_basic_auth = AUTH_TOKENS.get('HTTP_BASIC_AUTH',None)
-                self.poll_time = AUTH_TOKENS.get("POLL_TIME",10)
+                config_tokens = json.load(config)
+                self.http_basic_auth = config_tokens.get('HTTP_BASIC_AUTH',None)
+                self.poll_time = config_tokens.get("POLL_TIME",10)
 
         confd = directory / 'conf.d'
 
