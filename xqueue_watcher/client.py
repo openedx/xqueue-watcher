@@ -22,6 +22,8 @@ class XQueueClient(object):
 
         if http_basic_auth is not None:
             self.http_basic_auth = HTTPBasicAuth(*http_basic_auth)
+        else:
+            self.http_basic_auth = None
 
         self.running = True
         self.processing = False
