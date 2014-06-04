@@ -20,7 +20,7 @@ class Manager(object):
         self.clients = []
         self.poll_time = 10
         self.log = logging
-        self.requests_basic_auth = None
+        self.http_basic_auth = None
 
     def client_from_config(self, queue_name, config):
         """
@@ -31,7 +31,8 @@ class Manager(object):
         klass = getattr(client, config.get('CLASS', 'XQueueClientThread'))
         watcher = klass(queue_name,
                         xqueue_server=config.get('SERVER', 'http://localhost:18040'),
-                        auth=config.get('AUTH', (None, None)))
+                        xqueue_auth=config.get('AUTH', (None, None)),
+                        http_basic_auth=self.http_basic_auth)
 
         for handler_config in config.get('HANDLERS', []):
             handler_name = handler_config['HANDLER']
@@ -82,7 +83,7 @@ class Manager(object):
         if app_config.exists():
             with open(app_config) as config:
                 AUTH_TOKENS = json.load(config)
-                self.requests_basic_auth = AUTH_TOKENS.get('REQUESTS_BASIC_AUTH',None)
+                self.http_basic_auth = AUTH_TOKENS.get('HTTP_BASIC_AUTH',None)
                 self.poll_time = AUTH_TOKENS.get("POLL_TIME",10)
 
         confd = directory / 'conf.d'

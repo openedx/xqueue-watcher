@@ -9,14 +9,16 @@ log = logging.getLogger(__name__)
 
 
 class XQueueClient(object):
-    def __init__(self, queue_name, xqueue_server='http://localhost:18040', auth=('user', 'pass')):
+    def __init__(self, queue_name, xqueue_server='http://localhost:18040', xqueue_auth=('user', 'pass'),
+                 http_basic_auth=None):
         super(XQueueClient, self).__init__()
         self.session = requests.session()
         self.xqueue_server = xqueue_server
         self.queue_name = queue_name
         self.handlers = []
         self.daemon = True
-        self.username, self.password = auth
+        self.username, self.password = xqueue_auth
+        self.http_basic_auth = http_basic_auth
         self.running = True
         self.processing = False
 
@@ -55,7 +57,7 @@ class XQueueClient(object):
         r = None
         while not r:
             try:
-                r = self.session.request(method, url, timeout=timeout, **kwargs)
+                r = self.session.request(method, url, auth=self.http_basic_auth, timeout=timeout, **kwargs)
             except requests.exceptions.ConnectionError as e:
                 log.error('Could not connect to server at %s in timeout=%r', url, timeout)
                 return (False, e.message)
@@ -72,7 +74,7 @@ class XQueueClient(object):
             return True
         url = self.xqueue_server + '/xqueue/login/'
         log.debug("Trying to login to {0} with user: {1} and pass {2}".format(url, self.username, self.password))
-        response = self.session.request('post', url, data={
+        response = self.session.request('post', url, auth=self.http_basic_auth, data={
             'username': self.username,
             'password': self.password,
             })
