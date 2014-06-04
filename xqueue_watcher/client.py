@@ -18,6 +18,12 @@ class XQueueClient(object):
         self.handlers = []
         self.daemon = True
         self.username, self.password = xqueue_auth
+
+        if http_basic_auth is not None:
+            self.auth = requests.auth.HTTPBasicAuth(http_basic_auth)
+        else:
+            self.auth = None
+
         self.http_basic_auth = http_basic_auth
         self.running = True
         self.processing = False
