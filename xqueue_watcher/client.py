@@ -24,7 +24,6 @@ class XQueueClient(object):
         else:
             self.auth = None
 
-        self.http_basic_auth = http_basic_auth
         self.running = True
         self.processing = False
 
