@@ -20,7 +20,7 @@ class XQueueClient(object):
         self.username, self.password = xqueue_auth
 
         if http_basic_auth is not None:
-            self.auth = requests.auth.HTTPBasicAuth(http_basic_auth)
+            self.auth = requests.auth.HTTPBasicAuth(tuple(http_basic_auth))
         else:
             self.auth = None
 
