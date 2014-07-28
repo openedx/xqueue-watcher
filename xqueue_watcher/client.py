@@ -72,7 +72,7 @@ class XQueueClient(object):
             # Django can issue both a 302 to the login page and a
             # 301 if the original URL did not have a trailing / and
             # APPEND_SLASH is true in XQueue deployment, which is the default.
-            elif r.status_code == 302 or r.status_code == 301:
+            elif r.status_code in (301, 302):
                 if self._login():
                     r = None
                 else:
