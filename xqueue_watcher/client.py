@@ -78,8 +78,10 @@ class XQueueClient(object):
                 else:
                     return (False, "Could not log in")
             else:
-                log.error("Received un expected response status code, {0}, calling {1}.".format(
-                    r.status_code,url))
+                message = "Received un expected response status code, {0}, calling {1}.".format(
+                    r.status_code,url)
+                log.error(message)
+                return (False, message)
 
     def _login(self):
         if self.username is None:
