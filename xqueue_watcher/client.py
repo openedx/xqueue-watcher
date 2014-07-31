@@ -67,13 +67,21 @@ class XQueueClient(object):
             except requests.exceptions.ConnectionError as e:
                 log.error('Could not connect to server at %s in timeout=%r', url, timeout)
                 return (False, e.message)
-            if r.status_code != 302:
+            if r.status_code == 200:
                 return self._parse_response(r)
-            else:
+            # Django can issue both a 302 to the login page and a
+            # 301 if the original URL did not have a trailing / and
+            # APPEND_SLASH is true in XQueue deployment, which is the default.
+            elif r.status_code in (301, 302):
                 if self._login():
                     r = None
                 else:
                     return (False, "Could not log in")
+            else:
+                message = "Received un expected response status code, {0}, calling {1}.".format(
+                    r.status_code,url)
+                log.error(message)
+                return (False, message)
 
     def _login(self):
         if self.username is None:
