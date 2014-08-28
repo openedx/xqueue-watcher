@@ -58,7 +58,7 @@ class XQueueClient(object):
 
         return return_code, content
 
-    def _request(self, method, uri, timeout=None, **kwargs):
+    def _request(self, method, uri, timeout=0.5, **kwargs):
         url = self.xqueue_server + uri
         r = None
         while not r:
@@ -152,8 +152,19 @@ class XQueueClient(object):
         Run forever, processing items from the queue
         """
         if not self._login():
-            log.error("Could not log in to Xqueue %s. Quitting" % self.queue_name)
-            return False
+            log.error("Could not log in to Xqueue %s. Retrying every 5 seconds..." % self.queue_name)
+            num_tries = 1
+            while self.running:
+                num_tries += 1
+                time.sleep(5)
+                if not self._login():
+                    log.error("Still could not log in to %s (%s:%s) tries: %d",
+                        self.queue_name,
+                        self.username,
+                        self.password,
+                        num_tries)
+                else:
+                    break
         while self.running:
             if not self.process_one():
                 time.sleep(1)

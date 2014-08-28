@@ -131,23 +131,20 @@ class ManagerTests(unittest.TestCase):
             if url.endswith('put_result/'):
                 time.sleep(2)
 
+        import threading
+        def stopper(client):
+            time.sleep(.4)
+            client.running = False
+
         for c in self.m.clients:
             c.session = MockXQueueServer()
             c._json = {'return_code': 0, 'msg': 'logged in'}
+            c.session._url_checker = slow_reply
+            c.session._json = {'return_code': 0}
 
-        # make one client wait for a while and then blow up
-        def waiter(url, response, session):
-            time.sleep(.5)
-            response.status_code = 500
-
-        for c in self.m.clients:
-            if c.queue_name == 'test2':
-                c.session._url_checker = slow_reply
-                c.session._json = {'return_code': 0}
-            else:
-                c.session._url_checker = waiter
         self.m.poll_time = 1
         self.m.start()
+        threading.Thread(target=stopper, args=(self.m.clients[0],)).start()
 
         self.assertRaises(SystemExit, self.m.wait)
 
