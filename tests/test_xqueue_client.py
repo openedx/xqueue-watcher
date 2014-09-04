@@ -221,4 +221,5 @@ class ClientTests(unittest.TestCase):
                 response.status_code = 500
 
         self.session._url_checker = urlchecker
-        self.assertFalse(self.client.run())
+        self.client.running = False
+        self.assertTrue(self.client.run())
