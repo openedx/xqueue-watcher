@@ -2,4 +2,4 @@ requests==2.2.1
 dogstatsd-python==0.4.1
 path.py==5.1
 git+https://github.com/edx/codejail.git@3cd864ac7e6353c6bc874d48acd002a60539dd93#egg=codejail
-newrelic==2.20.0.17
+newrelic==2.46.0.37
