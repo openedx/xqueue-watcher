@@ -7,5 +7,5 @@ setup(
     packages=[
         'xqueue_watcher',
     ],
-    install_requires=open('requirements/production.txt', 'rb').readlines()
+    install_requires=open('requirements.txt', 'rb').readlines()
 )
