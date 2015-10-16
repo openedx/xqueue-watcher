@@ -17,7 +17,7 @@ test.requirements: requirements
 	pip install -q -r requirements/test.txt --exists-action w
 
 test: test.requirements
-	python -m unittest discover ./tests
+	nosetests --with-coverage --cover-package=xqueue_watcher --cover-xml
 
 clean:
 	find . -name '*.pyc' -delete
