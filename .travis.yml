@@ -1,0 +1,14 @@
+language: python
+python:
+  - "2.7"
+install:
+  - "sudo apt-get install apparmor-utils -y"
+  - "pip install -r test-requirements.txt"
+script:
+  - "nosetests --with-coverage --cover-package=xqueue_watcher --cover-xml"
+after_script:
+  - "pip install coveralls"
+  - coveralls
+branches:
+    only:
+      - master
