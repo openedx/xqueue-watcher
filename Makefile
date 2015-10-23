@@ -25,7 +25,8 @@ clean:
 	find . -name '*.pyc' -delete
 
 requirements.mon:
-	comm -23 <(sort requirements/production.txt) <(sort requirements/test.txt) > requirements/monitoring/requirements.txt
+	comm -23 <(sort requirements/production.txt) <(sort requirements/test.txt) \
+	> requirements/monitoring/requirements.txt
 
 # Targets in a Makefile which do not produce an output file with the same name as the target name
 .PHONY: help requirements clean
