@@ -1,13 +1,16 @@
-"""Utilities to help manage code execution and testing."""
+"""
+Utilities to help manage code execution and testing.
+"""
 
 import contextlib
-from StringIO import StringIO
 import os, os.path
 import shutil
 import sys
 import tempfile
 import textwrap
 import traceback
+
+import six
 
 # Set this variable to the language code you wish to use
 # Default is 'en'. Dummy translations are served up in 'eo'.
@@ -26,7 +29,8 @@ def captured_stdout():
 
     """
     old_stdout = sys.stdout
-    sys.stdout = stdout = StringIO()
+    sys.stdout = stdout = six.StringIO()
+
     try:
         yield stdout
     finally:
@@ -56,7 +60,7 @@ class TempDirectory(object):
         self.delete_when_done = delete_when_done
         self.temp_dir = tempfile.mkdtemp(prefix="grader-")
         # Make directory readable by other users ('sandbox' user needs to be able to read it)
-        os.chmod(self.temp_dir, 0775)
+        os.chmod(self.temp_dir, 0o775)
 
     def clean_up(self):
         if self.delete_when_done:

@@ -10,22 +10,34 @@ various sample inputs, and does not have answers, bad student code can only hurt
 itself.
 """
 
+from __future__ import absolute_import, print_function
+
 import gettext
 import json
-import os
 import random
 import sys
 
-import gradelib    # to set the random seed
-import graderutil
+import six
 
-usage = "Usage: run.py GRADER SUBMISSION seed"
+from . import gradelib    # to set the random seed
+from . import graderutil
+
+usage = u"Usage: run.py GRADER SUBMISSION seed"  # pylint: disable=invalid-name
 
 # Install gettext for translation support. This gettext install works within the sandbox,
 # so the path to graders/conf/locale can be relative.
 # LANGUAGE is set in graderutil.py
-trans = gettext.translation('graders', localedir='conf/locale', fallback=True, languages=[graderutil.LANGUAGE])
-trans.install(unicode=True, names=None)
+trans = gettext.translation(  # pylint: disable=invalid-name
+    'graders',
+    localedir='conf/locale',
+    fallback=True,
+    languages=[graderutil.LANGUAGE]
+)
+if six.PY2:
+    trans.install(names=None, unicode=True)
+else:
+    trans.install(names=None)
+
 
 def run(grader_name, submission_name, seed=1):
     """
@@ -77,7 +89,7 @@ def run(grader_name, submission_name, seed=1):
     if grader_mod:
         try:
             grader = grader_mod.grader
-        except:
+        except:  # pylint: disable=bare-except
             results['status'] = 'error'
             results['exception'] = graderutil.format_exception()
             output['exceptions'] += 1
@@ -99,10 +111,13 @@ def run(grader_name, submission_name, seed=1):
                             test(submission)
                         except gradelib.EndTest:
                             grader.caught_end_test()
-                        except:
+                        except:  # pylint: disable=bare-except
                             # The error could be either the grader code or the submission code,
                             # so hide information.
-                            exception_output = graderutil.format_exception(main_file=submission_name, hide_file=True)
+                            exception_output = graderutil.format_exception(
+                                main_file=submission_name,
+                                hide_file=True
+                            )
                             output['exceptions'] += 1
                         else:
                             exception_output = ""
@@ -111,8 +126,10 @@ def run(grader_name, submission_name, seed=1):
                         if test_output and test_output[-1] != '\n':
                             test_output += '\n'
                         test_output += exception_output
-                    output['results'].append((test.short_description, test.detailed_description, test_output))
-            except:
+                    output['results'].append(
+                        (test.short_description, test.detailed_description, test_output)
+                    )
+            except:  # pylint: disable=bare-except
                 output['grader']['status'] = 'error'
                 output['grader']['exception'] = graderutil.format_exception()
                 output['exceptions'] += 1
@@ -120,9 +137,9 @@ def run(grader_name, submission_name, seed=1):
             output['exceptions'] += 1
 
         if grader.uncaught_end_tests():
-            # We raised EndTest more than we caught them, the student must be 
+            # We raised EndTest more than we caught them, the student must be
             # catching them, inadvertently or not.
-            output['submission']['exception'] = _("Your code interfered with our grader.  Don't use bare 'except' clauses.")
+            output['submission']['exception'] = _("Your code interfered with our grader.  Don't use bare 'except' clauses.")  # pylint: disable=line-too-long
             output['submission']['status'] = 'caught'
     return output
 
@@ -133,7 +150,7 @@ def import_captured(name, our_code=False):
 
     If `our_code` is true, then the code is edX-authored, and any exception output
     can include full context.  If `our_code` is false, then this is student-submitted
-    code, and should have only student-provided information visible in exception 
+    code, and should have only student-provided information visible in exception
     traces.  This isn't a security precaution, it just keeps us from showing confusing
     and unhelpful information to students.
     """
@@ -143,7 +160,7 @@ def import_captured(name, our_code=False):
     try:
         with graderutil.captured_stdout() as stdout:
             mod = __import__(name)
-    except:
+    except:  # pylint: disable=bare-except
         result['status'] = 'error'
         if our_code:
             exc = graderutil.format_exception()
@@ -156,9 +173,12 @@ def import_captured(name, our_code=False):
     result['stdout'] = stdout.getvalue()
     return mod, result
 
-def main(args):     # pragma: no cover
+def main(args):  # pragma: no cover
+    """
+    Execute the grader from the command line
+    """
     if len(args) != 3:
-        print usage
+        print(usage)
         return
 
     (grader_path, submission_path, seed) = args
@@ -169,7 +189,7 @@ def main(args):     # pragma: no cover
     submission_name = submission_path[:-3]
 
     output = run(grader_name, submission_name, seed)
-    print json.dumps(output)
+    print(json.dumps(output))
 
 if __name__ == '__main__':      # pragma: no cover
     main(sys.argv[1:])

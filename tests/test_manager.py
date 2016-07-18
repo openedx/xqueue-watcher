@@ -1,3 +1,4 @@
+from StringIO import StringIO
 import unittest
 from path import path
 import json
@@ -10,7 +11,7 @@ from xqueue_watcher import manager
 from tests.test_xqueue_client import MockXQueueServer
 
 try:
-    import codejail.jail_code
+    import codejail
     HAS_CODEJAIL = True
 except ImportError:
     HAS_CODEJAIL = False
@@ -66,12 +67,13 @@ class ManagerTests(unittest.TestCase):
             }
         }
         self.m.enable_codejail(config)
-        self.assertTrue(codejail.jail_code.is_configured("python"))
+        self.assertTrue(codejail.is_configured("python"))
+        self.assertTrue(codejail.is_configured("python3"))
         self.m.enable_codejail({
             "name": "other-python",
             "python_bin": "/usr/local/bin/python"
             })
-        self.assertTrue(codejail.jail_code.is_configured("other-python"))
+        self.assertTrue(codejail.is_configured("other-python"))
 
         # now we'll see if the codejail config is inherited in the handler subprocess
         handler_config = self.config['test1'].copy()
@@ -148,8 +150,14 @@ class ManagerTests(unittest.TestCase):
 
         self.assertRaises(SystemExit, self.m.wait)
 
-    def test_main(self):
+    def test_main_with_errors(self):
+        stderr = sys.stderr
+        sys.stderr = StringIO()
         self.assertRaises(SystemExit, manager.main, [])
+        sys.stderr.seek(0)
+        self.assertEqual(sys.stderr.read(), 'usage: xqueue_watcher [-h] -d CONFIG_ROOT\nxqueue_watcher: error: argument -d/--config_root is required\n')
+        sys.stderr = stderr
+
         mydir = path(__file__).dirname()
         args = ['-d', mydir / "fixtures/config"]
         self.assertEqual(manager.main(args), 0)

@@ -1,4 +1,4 @@
-import gradelib
+from grader_support import gradelib
 
 grader = gradelib.Grader()
 

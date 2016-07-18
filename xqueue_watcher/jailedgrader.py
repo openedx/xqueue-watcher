@@ -7,7 +7,8 @@ import json
 import random
 import gettext
 from path import path
-from codejail.jail_code import jail_code
+
+import codejail
 
 from grader_support.gradelib import EndTest
 from grader_support.graderutil import LANGUAGE
@@ -64,7 +65,8 @@ class JailedGrader(Grader):
             files.append(self.locale_dir)
         extra_files = [('submission.py', thecode.encode('utf-8'))]
         argv = ["-m", "grader_support.run", path(grader_path).basename(), 'submission.py', seed]
-        r = jail_code(self.codejail_python, files=files, extra_files=extra_files, argv=argv)
+        jail = codejail.get_codejail(self.codejail_python)
+        r = jail.jail_code(files=files, extra_files=extra_files, argv=argv)
         return r
 
     def syntax_error(self, submission):
