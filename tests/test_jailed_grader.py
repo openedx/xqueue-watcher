@@ -14,7 +14,7 @@ class JailedGraderTests(unittest.TestCase):
     def setUp(self):
         configure("python", sys.executable, user=getpass.getuser())
         py3paths = [os.environ.get('XQUEUEWATCHER_PYTHON3_BIN'), '/usr/bin/python3', '/usr/local/bin/python3']
-        for py3path in (py3path for py3path in py3paths if py3path):
+        for py3path in (p3p for p3p in py3paths if p3p):
             if os.path.exists(py3path):
                 configure(
                     "python3",

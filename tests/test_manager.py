@@ -68,7 +68,6 @@ class ManagerTests(unittest.TestCase):
         }
         self.m.enable_codejail(config)
         self.assertTrue(codejail.is_configured("python"))
-        self.assertTrue(codejail.is_configured("python3"))
         self.m.enable_codejail({
             "name": "other-python",
             "python_bin": "/usr/local/bin/python"
