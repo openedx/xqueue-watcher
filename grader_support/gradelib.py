@@ -75,7 +75,7 @@ class Grader(object):
         # in the specified order.  (foldl)
         self._preprocessors = [fix_line_endings]
 
-        # how many EndTest's did we raise and not catch? So we can make sure the student
+        # how many EndTests did we raise and not catch? So we can make sure the student
         # didn't catch them.
         self._end_tests = 0
 
