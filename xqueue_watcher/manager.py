@@ -106,7 +106,7 @@ class Manager(object):
         codejail_config is a dict like this:
         {
             "name": "python",
-            "python_bin": "/path/to/python",
+            "bin_path": "/path/to/python",
             "user": "sandbox_username",
             "limits": {
                 "CPU": 1,
@@ -117,14 +117,14 @@ class Manager(object):
         user defaults to the current user
         """
         name = codejail_config["name"]
-        python_bin = codejail_config['python_bin']
+        bin_path = codejail_config['bin_path']
         user = codejail_config.get('user', getpass.getuser())
         lang = CODEJAIL_LANGUAGES.get(codejail_config.get('lang'), codejail.languages.other)
-        codejail.configure(name, python_bin, user=user, lang=lang)
+        codejail.configure(name, bin_path, user=user, lang=lang)
         limits = codejail_config.get("limits", {})
         for name, value in limits.items():
             codejail.limits.set_limit(name, value)
-        self.log.info("configured codejail -> %s %s %s", name, python_bin, user)
+        self.log.info("configured codejail -> %s %s %s", name, bin_path, user)
         return name
 
     def start(self):
