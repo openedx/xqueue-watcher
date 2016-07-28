@@ -59,7 +59,7 @@ class ManagerTests(unittest.TestCase):
     def test_codejail_config(self):
         config = {
             "name": "python",
-            "python_bin": "/usr/bin/python",
+            "bin_path": "/usr/bin/python",
             "user": "nobody",
             "limits": {
                 "CPU": 2,
@@ -70,7 +70,7 @@ class ManagerTests(unittest.TestCase):
         self.assertTrue(codejail.is_configured("python"))
         self.m.enable_codejail({
             "name": "other-python",
-            "python_bin": "/usr/local/bin/python"
+            "bin_path": "/usr/local/bin/python"
             })
         self.assertTrue(codejail.is_configured("other-python"))
 
