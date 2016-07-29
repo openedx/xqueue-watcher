@@ -1,17 +1,21 @@
+from __future__ import absolute_import, print_function
+
 import contextlib
 import inspect
 import random
 import re
 import sys
 import tokenize
-from StringIO import StringIO
 
+import six
 # the run library should overwrite this with a particular random seed for the test.
 rand = random.Random(1)
 
 
 class EndTest(Exception):
-    """An exception raised in a test to end the test."""
+    """
+    An exception raised in a test to end the test.
+    """
     def __init__(self, message=None):
         Exception.__init__(self, message)
 
@@ -71,7 +75,7 @@ class Grader(object):
         # in the specified order.  (foldl)
         self._preprocessors = [fix_line_endings]
 
-        # how many EndTest's did we raise and not catch? So we can make sure the student 
+        # how many EndTests did we raise and not catch? So we can make sure the student
         # didn't catch them.
         self._end_tests = 0
 
@@ -108,7 +112,7 @@ class Grader(object):
         End the test with a message to the student.
         """
         self._end_tests += 1
-        print _("*** Error: {0}").format(message)
+        print(_("*** Error: {0}").format(message))
         raise EndTest()
 
     def caught_end_test(self):
@@ -195,14 +199,14 @@ def wrap_in_string(code):
     # repr() takes care of escaping things properly.
     s = "submission_code = " + repr(code)
     #print "wrapped '" + code + "': '" + s + "'"
-    
+
     return s
 
 def fix_line_endings(code):
     """
     Remove carriage returns.
     """
-    return code.replace('\r','')
+    return code.replace('\r', '')
 
 ## Input checks ###########################################################
 
@@ -232,17 +236,21 @@ def prohibited_substring(string, error_msg=None):
 
 # Aliases that might become more intelligent in the future.
 def _tokens(code):
-    """A wrapper around tokenize.generate_tokens.""" 
+    """
+    A wrapper around tokenize.generate_tokens.
+    """
     # Protect against pathological inputs: http://bugs.python.org/issue16152
     code = code.rstrip() + "\n"
     if isinstance(code, unicode):
         code = code.encode('utf8')
     code = "# coding: utf8\n" + code
-    toks = tokenize.generate_tokens(StringIO(code).readline)
+    toks = tokenize.generate_tokens(six.StringIO(code).readline)
     return toks
 
 def _count_tokens(code, string):
-    """Return a count of how many times `string` appears as a keyword in `code."""
+    """
+    Return a count of how many times `string` appears as a keyword in `code`.
+    """
     count = 0
 
     try:
@@ -281,10 +289,10 @@ def input_check_or(error_msg, *args):
     return check
 
 def one_of_required_keywords(strings, error_msg=None):
-    '''
+    """
     strings is a list of strings
     returns True if one of the strings is present, False if none are.
-    '''
+    """
     def check(code):
         for string in strings:
             if _count_tokens(code, string) > 0:
@@ -305,7 +313,7 @@ def substring_occurs(string, at_least=None, at_most=None, exactly=None, error_ms
     """
     def check(code):
         if ignore_spacing:
-            occurs = code.replace(' ','').count(string.replace(' ', ''))
+            occurs = code.replace(' ', '').count(string.replace(' ', ''))
         else:
             occurs = code.count(string)
         return _check_occurs(string, occurs, at_least, at_most, exactly, error_msg)
@@ -415,20 +423,20 @@ def prohibited_class_method(class_name, method_name, error_msg=None):
     titled `method_name`. If so, returns `error_msg`, or a default message.
     """
     def check(code):
-        inClass = False
+        in_class = False
         lines = code.split('\n')
         # Remove comments from lines
         lines = [line[:line.find('#')] for line in lines]
         for line in lines:
-            if line.replace(' ','') == '': continue
-
+            if line.replace(' ', '') == '':
+                continue
             if 'class ' + class_name in line:
-                inClass = True
-            elif inClass and re.search(r"\bdef\s+%s\b" % method_name, line):
+                in_class = True
+            elif in_class and re.search(r"\bdef\s+%s\b" % method_name, line):
                 return error_msg or _("The class named '{0}' should not define a method named {1}.").format(class_name, method_name)
-            elif inClass and 'class ' in line:
+            elif in_class and 'class ' in line:
                 if class_name not in line or '('+class_name+')' in line.replace(' ', ''):
-                    inClass = False
+                    in_class = False
         return None
     return check
 
@@ -438,23 +446,19 @@ def required_class_method(class_name, method_name, error_msg=None):
     titled `method_name`. If not, returns `error_msg`, or a default message.
     """
     def check(code):
-        inClass = False
-        inDocstring = False
+        in_class = False
         lines = code.split('\n')
         # Remove comments from lines
         lines = [line[:line.find('#')] for line in lines]
         for line in lines:
-            if line.replace(' ','') == '': continue
-
-#            if "'''" in line or '"""' in line: # TODO Sarina: does this work? debug it, L11/handClass
-#                inDocstring = not inDocstring
-#            elif inDocstring: continue
+            if line.replace(' ', '') == '':
+                continue
             if 'class ' + class_name in line:
-                inClass = True
-            elif inClass and re.search(r"\bdef\s+%s\b" % method_name, line):
+                in_class = True
+            elif in_class and re.search(r"\bdef\s+%s\b" % method_name, line):
                 return None
-            elif inClass and 'class ' in line and class_name not in line:
-                inClass = False
+            elif in_class and 'class ' in line and class_name not in line:
+                in_class = False
         return error_msg or _("The class named '{0}' should define a method named {1}.").format(class_name, method_name)
     return check
 
@@ -464,7 +468,7 @@ def required_class_method(class_name, method_name, error_msg=None):
 @contextlib.contextmanager
 def capture_stdout():
     old_stdout = sys.stdout
-    sys.stdout = stdout = StringIO()
+    sys.stdout = stdout = six.StringIO()
     yield stdout
     sys.stdout = old_stdout
 
@@ -479,11 +483,11 @@ def exec_wrapped_code(environment=None, post_process=None):
         environment = {}
     def test_fn(submission_module):
         with capture_stdout() as stdout:
-            exec submission_module.submission_code in environment
+            six.exec_(submission_module.submission_code, environment)
         stdout_text = stdout.getvalue()
         if post_process:
             stdout_text = post_process(stdout_text)
-        print stdout_text
+        print(stdout_text)
 
     return test_fn
 
@@ -501,13 +505,13 @@ def exec_code_and_inspect_values(environment=None, vars_to_inspect=None, post_pr
         environment = {}
     def test_fn(submission_module):
         with capture_stdout() as stdout:
-            exec submission_module.submission_code in environment
+            six.exec_(submission_module.submission_code, environment)
 
         for var in vars_to_inspect:
-            print var
+            print(var)
 
     return test_fn
-    
+
 
 def trace_wrapped_code(inspector, error_msg):
     def test_fn(submission_module):
@@ -515,7 +519,7 @@ def trace_wrapped_code(inspector, error_msg):
         with inspector:
             for report in inspector.inspect_dispatch():
                 if not report:
-                    print error_msg
+                    print(error_msg)
     return test_fn
 
 def invoke_student_function(fn_name, args, environment=None, output_writer=None):
@@ -528,24 +532,26 @@ def invoke_student_function(fn_name, args, environment=None, output_writer=None)
     """
     output_writer = output_writer or repr
     def doit(submission_module):
-        for name, value in (environment or {}).iteritems():
+        for name, value in six.iteritems(environment or {}):
             setattr(submission_module, name, value)
         fn = getattr(submission_module, fn_name)
-        print output_writer(fn(*args))
+        print(output_writer(fn(*args)))
     return doit
 
 class InvokeStudentFunctionTest(Test):
     """
     A Test that invokes a student function.
     """
-    def __init__(self, fn_name, args, environment=None, output_writer=None, short_desc=None, detailed_desc=None,compare=None):
+    def __init__(self, fn_name, args, environment=None, output_writer=None, short_desc=None, detailed_desc=None, compare=None):
         test_fn = invoke_student_function(fn_name, args, environment, output_writer)
         if short_desc is None:
             short_desc = "Test: %s(%s)" % (fn_name, ", ".join(repr(a) for a in args))
         Test.__init__(self, test_fn, short_desc, detailed_desc, compare)
 
 def round_float_writer(n):
-    """Returns an output_writer function that rounds its argument to `n` places."""
+    """
+    Returns an output_writer function that rounds its argument to `n` places.
+    """
     def _round_float_output_writer(f):
         return "%.*f" % (n, f)
     return _round_float_output_writer

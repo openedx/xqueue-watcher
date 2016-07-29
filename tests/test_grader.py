@@ -3,7 +3,7 @@ import mock
 import json
 import sys
 from path import path
-from Queue import Queue
+from six.moves.queue import Queue
 
 from xqueue_watcher import grader
 
@@ -27,11 +27,11 @@ class MockGrader(grader.Grader):
             errors.append(u'\x00\xc3\x83\xc3\xb8\x02')
 
         try:
-            import codejail.jail_code
+            import codejail
         except ImportError:
             tests.append(("codejail", "codejail not installed", True, "", ""))
         else:
-            if codejail.jail_code.is_configured("python"):
+            if codejail.is_configured("python"):
                 tests.append(("codejail", "codejail configured", True, "", ""))
             else:
                 tests.append(("codejail", "codejail not configured", True, "", ""))

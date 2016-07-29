@@ -1,16 +1,24 @@
 #!/usr/bin/env python
 
 from __future__ import print_function
+
+import getpass
+import importlib
+import inspect
+import json
+import logging
+import logging.config
+from path import path
+import signal
 import sys
 import time
-import json
-import signal
-import inspect
-import logging
-import importlib
-from path import path
-import logging.config
 
+import codejail
+
+CODEJAIL_LANGUAGES = {
+    'python2': codejail.languages.python2,
+    'python3': codejail.languages.python3,
+}
 
 class Manager(object):
     """
@@ -98,7 +106,7 @@ class Manager(object):
         codejail_config is a dict like this:
         {
             "name": "python",
-            "python_bin": "/path/to/python",
+            "bin_path": "/path/to/python",
             "user": "sandbox_username",
             "limits": {
                 "CPU": 1,
@@ -108,17 +116,15 @@ class Manager(object):
         limits are optional
         user defaults to the current user
         """
-        import codejail.jail_code
-        import getpass
         name = codejail_config["name"]
-        python_bin = codejail_config['python_bin']
+        bin_path = codejail_config['bin_path']
         user = codejail_config.get('user', getpass.getuser())
-
-        codejail.jail_code.configure(name, python_bin, user=user)
+        lang = CODEJAIL_LANGUAGES.get(codejail_config.get('lang'), codejail.languages.other)
+        codejail.configure(name, bin_path, user=user, lang=lang)
         limits = codejail_config.get("limits", {})
         for name, value in limits.items():
-            codejail.jail_code.set_limit(name, value)
-        self.log.info("configured codejail -> %s %s %s", name, python_bin, user)
+            codejail.limits.set_limit(name, value)
+        self.log.info("configured codejail -> %s %s %s", name, bin_path, user)
         return name
 
     def start(self):
