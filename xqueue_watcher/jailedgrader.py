@@ -7,6 +7,7 @@ import json
 import random
 import gettext
 from path import path
+import six
 
 import codejail
 
@@ -18,9 +19,21 @@ from .grader import Grader
 
 TIMEOUT = 1
 
+def path_to_six():
+    """
+    Return the full path to six.py
+    """
+    if any(six.__file__.endswith(suffix) for suffix in ('.pyc', '.pyo')):
+        # __file__ points to the compiled bytecode in python 2
+        return path(six.__file__[:-1])
+    else:
+        # __file__ points to the .py file in python 3
+        return path(six.__file__)
+
 
 SUPPORT_FILES = [
-    path(grader_support.__file__).dirname()
+    path(grader_support.__file__).dirname(),
+    path_to_six(),
 ]
 
 
@@ -69,12 +82,6 @@ class JailedGrader(Grader):
         r = jail.jail_code(files=files, extra_files=extra_files, argv=argv)
         return r
 
-    def syntax_error(self, submission):
-        """
-        Check the code for syntax errors
-        """
-        return False
-
     def grade(self, grader_path, grader_config, submission):
         if type(submission) != unicode:
             self.log.warning("Submission is NOT unicode")
@@ -91,13 +98,6 @@ class JailedGrader(Grader):
         answer_path = path(grader_path).dirname() / 'answer.py'
         with open(answer_path) as f:
             answer = f.read().decode('utf-8')
-
-        # Check the student submission for syntax errors.  We won't get far if it
-        # has them, and further tests may misdiagnose in the presence of syntax errors.
-        synerr = self.syntax_error(submission)
-        if synerr:
-            results['errors'].append(synerr)
-            return results
 
         # Import the grader, straight from the original file.  (It probably isn't in
         # sys.path, and we may be in a long running gunicorn process, so we don't

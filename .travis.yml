@@ -7,7 +7,6 @@ install:
   - "sudo apt-get install python3 -y"
   - "make test.requirements"
   - "virtualenv --python=`which python3` ./py3venv"
-  - "./py3venv/bin/pip3 install six"
 script:
   - "XQUEUEWATCHER_PYTHON3_BIN=`pwd`/py3venv/bin/python3 nosetests --with-coverage --cover-package=xqueue_watcher --cover-xml"
 after_script:
