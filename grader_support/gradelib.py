@@ -241,10 +241,10 @@ def _tokens(code):
     """
     # Protect against pathological inputs: http://bugs.python.org/issue16152
     code = code.rstrip() + "\n"
-    if isinstance(code, unicode):
+    if isinstance(code, six.text_type):
         code = code.encode('utf8')
     code = "# coding: utf8\n" + code
-    toks = tokenize.generate_tokens(six.StringIO(code).readline)
+    toks = tokenize.generate_tokens(six.BytesIO(code).readline)
     return toks
 
 def _count_tokens(code, string):
