@@ -63,7 +63,14 @@ class XQueueClient(object):
         r = None
         while not r:
             try:
-                r = self.session.request(method, url, auth=self.http_basic_auth, timeout=timeout, **kwargs)
+                r = self.session.request(
+                    method,
+                    url,
+                    auth=self.http_basic_auth,
+                    timeout=timeout,
+                    allow_redirects=False,
+                    **kwargs
+                )
             except requests.exceptions.ConnectionError as e:
                 log.error('Could not connect to server at %s in timeout=%r', url, timeout)
                 return (False, e.message)
