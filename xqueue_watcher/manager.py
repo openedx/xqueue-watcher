@@ -19,6 +19,24 @@ CODEJAIL_LANGUAGES = {
     'python2': codejail.languages.python2,
     'python3': codejail.languages.python3,
 }
+MANAGER_CONFIG_DEFAULTS = {
+    'HTTP_BASIC_AUTH': None,
+    'POLL_TIME': 10,
+    'REQUESTS_TIMEOUT': 1,
+    'WAIT_DURATION': 1,
+}
+
+
+def get_manager_config_values(app_config_path):
+    if not app_config_path.exists():
+        return MANAGER_CONFIG_DEFAULTS.copy()
+    with open(app_config_path) as config:
+        config_tokens = json.load(config)
+        return {
+            config_key: config_tokens.get(config_key, default_config_value)
+            for config_key, default_config_value in MANAGER_CONFIG_DEFAULTS.items()
+        }
+
 
 class Manager(object):
     """
@@ -26,23 +44,26 @@ class Manager(object):
     """
     def __init__(self):
         self.clients = []
-        self.poll_time = 10
         self.log = logging
-        self.http_basic_auth = None
+        self.manager_config = MANAGER_CONFIG_DEFAULTS.copy()
 
-    def client_from_config(self, queue_name, config):
+    def client_from_config(self, queue_name, watcher_config):
         """
         Return an XQueueClient from the configuration object.
         """
         from . import client
 
-        klass = getattr(client, config.get('CLASS', 'XQueueClientThread'))
-        watcher = klass(queue_name,
-                        xqueue_server=config.get('SERVER', 'http://localhost:18040'),
-                        xqueue_auth=config.get('AUTH', (None, None)),
-                        http_basic_auth=self.http_basic_auth)
+        klass = getattr(client, watcher_config.get('CLASS', 'XQueueClientThread'))
+        watcher = klass(
+            queue_name,
+            xqueue_server=watcher_config.get('SERVER', 'http://localhost:18040'),
+            xqueue_auth=watcher_config.get('AUTH', (None, None)),
+            http_basic_auth=self.manager_config['HTTP_BASIC_AUTH'],
+            requests_timeout=self.manager_config['REQUESTS_TIMEOUT'],
+            wait_duration=self.manager_config['WAIT_DURATION']
+        )
 
-        for handler_config in config.get('HANDLERS', []):
+        for handler_config in watcher_config.get('HANDLERS', []):
             handler_name = handler_config['HANDLER']
             mod_name, classname = handler_name.rsplit('.', 1)
             module = importlib.import_module(mod_name)
@@ -86,16 +107,10 @@ class Manager(object):
             logging.basicConfig(level="DEBUG")
         self.log = logging.getLogger('xqueue_watcher.manager')
 
-        app_config = directory / 'xqwatcher.json'
-
-        if app_config.exists():
-            with open(app_config) as config:
-                config_tokens = json.load(config)
-                self.http_basic_auth = config_tokens.get('HTTP_BASIC_AUTH',None)
-                self.poll_time = config_tokens.get("POLL_TIME",10)
+        app_config_path = directory / 'xqwatcher.json'
+        self.manager_config = get_manager_config_values(app_config_path)
 
         confd = directory / 'conf.d'
-
         for watcher in confd.files('*.json'):
             with open(watcher) as queue_config:
                 self.configure(json.load(queue_config))
@@ -149,7 +164,7 @@ class Manager(object):
                                    client.queue_name)
                     self.shutdown()
                 try:
-                    time.sleep(self.poll_time)
+                    time.sleep(self.manager_config['POLL_TIME'])
                 except KeyboardInterrupt:  # pragma: no cover
                     self.shutdown()
 
