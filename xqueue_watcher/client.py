@@ -5,13 +5,20 @@ import requests
 from requests.auth import HTTPBasicAuth
 import threading
 import multiprocessing
+from settings import MANAGER_CONFIG_DEFAULTS
 
 log = logging.getLogger(__name__)
 
 
 class XQueueClient(object):
-    def __init__(self, queue_name, xqueue_server='http://localhost:18040', xqueue_auth=('user', 'pass'),
-                 http_basic_auth=None):
+    def __init__(self,
+                 queue_name,
+                 xqueue_server='http://localhost:18040',
+                 xqueue_auth=('user', 'pass'),
+                 http_basic_auth=MANAGER_CONFIG_DEFAULTS['HTTP_BASIC_AUTH'],
+                 requests_timeout=MANAGER_CONFIG_DEFAULTS['REQUESTS_TIMEOUT'],
+                 poll_interval=MANAGER_CONFIG_DEFAULTS['POLL_INTERVAL'],
+                 login_poll_interval=MANAGER_CONFIG_DEFAULTS['LOGIN_POLL_INTERVAL']):
         super(XQueueClient, self).__init__()
         self.session = requests.session()
         self.xqueue_server = xqueue_server
@@ -19,6 +26,9 @@ class XQueueClient(object):
         self.handlers = []
         self.daemon = True
         self.username, self.password = xqueue_auth
+        self.requests_timeout = requests_timeout
+        self.poll_interval = poll_interval
+        self.login_poll_interval = login_poll_interval
 
         if http_basic_auth is not None:
             self.http_basic_auth = HTTPBasicAuth(*http_basic_auth)
@@ -58,7 +68,7 @@ class XQueueClient(object):
 
         return return_code, content
 
-    def _request(self, method, uri, timeout=0.5, **kwargs):
+    def _request(self, method, uri, **kwargs):
         url = self.xqueue_server + uri
         r = None
         while not r:
@@ -67,12 +77,12 @@ class XQueueClient(object):
                     method,
                     url,
                     auth=self.http_basic_auth,
-                    timeout=timeout,
+                    timeout=self.requests_timeout,
                     allow_redirects=False,
                     **kwargs
                 )
             except requests.exceptions.ConnectionError as e:
-                log.error('Could not connect to server at %s in timeout=%r', url, timeout)
+                log.error('Could not connect to server at %s in timeout=%r', url, self.requests_timeout)
                 return (False, e.message)
             if r.status_code == 200:
                 return self._parse_response(r)
@@ -163,7 +173,7 @@ class XQueueClient(object):
             num_tries = 1
             while self.running:
                 num_tries += 1
-                time.sleep(5)
+                time.sleep(self.login_poll_interval)
                 if not self._login():
                     log.error("Still could not log in to %s (%s:%s) tries: %d",
                         self.queue_name,
@@ -174,7 +184,7 @@ class XQueueClient(object):
                     break
         while self.running:
             if not self.process_one():
-                time.sleep(1)
+                time.sleep(self.poll_interval)
         return True
 
 
