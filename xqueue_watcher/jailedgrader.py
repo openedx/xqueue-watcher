@@ -93,6 +93,12 @@ class JailedGrader(Grader):
             'score': 0,
         }
 
+        if grader_config.get('skip_grader', False):
+            results['correct'] = True
+            results['score'] = 1
+            self.log.debug('Skipping the grader.')
+            return results
+
         self._enable_i18n(grader_config.get("lang", LANGUAGE))
 
         answer_path = path(grader_path).dirname() / 'answer.py'
