@@ -152,7 +152,7 @@ class XQueueClient(object):
     def process_one(self):
         try:
             self.processing = False
-            get_params = {'queue_name': self.queue_name, 'block': 'true'}
+            get_params = {'queue_name': self.queue_name}
             success, content = self._request('get', '/xqueue/get_submission/', params=get_params)
             if success:
                 self.processing = True
