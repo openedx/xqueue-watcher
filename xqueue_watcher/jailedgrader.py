@@ -93,6 +93,17 @@ class JailedGrader(Grader):
             'score': 0,
         }
 
+        # There are some cases where the course team would like to accept a
+        # student submission but not process the student code. Some examples are
+        # cases where the problem would require dependencies that are difficult
+        # or impractical to install in a sandbox or if the complexity of the
+        # solution would cause the runtime of the student code to exceed what is
+        # possible in the sandbox.
+
+        # skip_grader is a flag in the grader config which is a boolean. If it
+        # is set to true on a problem then it will always show that the
+        # submission is correct and give the student a full score for the
+        # problem.
         if grader_config.get('skip_grader', False):
             results['correct'] = True
             results['score'] = 1
