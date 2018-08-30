@@ -1,6 +1,7 @@
 """
 An implementation of a grader that uses codejail to sandbox submission execution.
 """
+import os
 import sys
 import imp
 import json
@@ -67,6 +68,8 @@ class JailedGrader(Grader):
         super(JailedGrader, self).__init__(*args, **kwargs)
         self.locale_dir = self.grader_root / "conf" / "locale"
         self.fork_per_item = False  # it's probably safe not to fork
+        # EDUCATOR-3368: OpenBLAS library is allowed to allocate 1 thread
+        os.environ["OPENBLAS_NUM_THREADS"] = "1"
 
     def _enable_i18n(self, language):
         trans = gettext.translation('graders', localedir=self.locale_dir, fallback=True, languages=[language])
