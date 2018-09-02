@@ -9,6 +9,10 @@ Running
 
 `python -m xqueue_watcher -d [path to settings directory]`
 
+Run with Docker: 
+- `docker build -t xqueue-watcher .` - build image
+- `docker run -ti --name xqueue-watcher xqueue-watcher` - run container
+
 
 JSON configuration file
 =======================
