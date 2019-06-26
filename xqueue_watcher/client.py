@@ -18,7 +18,8 @@ class XQueueClient(object):
                  http_basic_auth=MANAGER_CONFIG_DEFAULTS['HTTP_BASIC_AUTH'],
                  requests_timeout=MANAGER_CONFIG_DEFAULTS['REQUESTS_TIMEOUT'],
                  poll_interval=MANAGER_CONFIG_DEFAULTS['POLL_INTERVAL'],
-                 login_poll_interval=MANAGER_CONFIG_DEFAULTS['LOGIN_POLL_INTERVAL']):
+                 login_poll_interval=MANAGER_CONFIG_DEFAULTS['LOGIN_POLL_INTERVAL'],
+                 follow_client_redirects=MANAGER_CONFIG_DEFAULTS['FOLLOW_CLIENT_REDIRECTS']):
         super(XQueueClient, self).__init__()
         self.session = requests.session()
         self.xqueue_server = xqueue_server
@@ -29,6 +30,7 @@ class XQueueClient(object):
         self.requests_timeout = requests_timeout
         self.poll_interval = poll_interval
         self.login_poll_interval = login_poll_interval
+        self.follow_client_redirects = follow_client_redirects
 
         if http_basic_auth is not None:
             self.http_basic_auth = HTTPBasicAuth(*http_basic_auth)
@@ -78,7 +80,7 @@ class XQueueClient(object):
                     url,
                     auth=self.http_basic_auth,
                     timeout=self.requests_timeout,
-                    allow_redirects=False,
+                    allow_redirects=self.follow_client_redirects,
                     **kwargs
                 )
             except requests.exceptions.ConnectionError as e:
