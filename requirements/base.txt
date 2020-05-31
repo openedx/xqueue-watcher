@@ -4,13 +4,16 @@
 #
 #    make upgrade
 #
-certifi==2019.11.28       # via requests
+-e git+https://github.com/edx/codejail.git@4127fc4bd5775cc72aee8d7f0a70e31405e22439#egg=codejail  # via -r requirements/base.in
+certifi==2020.4.5.1       # via requests
 chardet==3.0.4            # via requests
-git+https://github.com/edx/codejail.git@1.1#egg=codejail==1.1
-dogstatsd-python==0.5.6
-idna==2.8                 # via requests
-newrelic==2.98.0.81
-path.py==5.1
-requests==2.22.0
-six==1.13.0
-urllib3==1.25.7           # via requests
+dogstatsd-python==0.5.6   # via -r requirements/base.in
+idna==2.9                 # via requests
+importlib-metadata==1.6.0  # via path
+newrelic==5.12.1.141      # via -r requirements/base.in
+path.py==12.4.0           # via -r requirements/base.in
+path==13.1.0              # via path.py
+requests==2.23.0          # via -r requirements/base.in
+six==1.15.0               # via -r requirements/base.in
+urllib3==1.25.9           # via requests
+zipp==1.2.0               # via importlib-metadata
