@@ -7,7 +7,7 @@ import requests
 import json
 import tempfile
 import getpass
-from path import path
+from path import Path
 import pprint
 import argparse
 
@@ -20,7 +20,7 @@ WATCHER_CONFIG = {
             {
                 "HANDLER": "xqueue_watcher.jailedgrader.JailedGrader",
                 "KWARGS": {
-                    "grader_root": path(__file__).dirname() / "../../data/6.00x/graders/",
+                    "grader_root": Path(__file__).dirname() / "../../data/6.00x/graders/",
                 }
             }
         ]

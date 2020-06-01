@@ -1,5 +1,6 @@
 from __future__ import absolute_import, print_function
 
+from __future__ import unicode_literals
 import contextlib
 import inspect
 import random
@@ -88,7 +89,7 @@ class Grader(object):
 
         MUST NOT RUN the submission.  Only allowed to do safe checks, like substr, etc.
         """
-        return filter(None, [check(submission_str) for check in self._input_checks])
+        return [_f for _f in [check(submission_str) for check in self._input_checks] if _f]
 
     def preprocess(self, submission_str):
         """

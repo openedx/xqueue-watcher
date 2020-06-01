@@ -2,25 +2,23 @@
 
 from __future__ import print_function
 
+from __future__ import absolute_import
+from __future__ import unicode_literals
 import getpass
 import importlib
 import inspect
 import json
 import logging
 import logging.config
-from path import path
+from path import Path
 import signal
 import sys
 import time
 
-import codejail
+from codejail import jail_code
 
-from settings import get_manager_config_values, MANAGER_CONFIG_DEFAULTS
-
-CODEJAIL_LANGUAGES = {
-    'python2': codejail.languages.python2,
-    'python3': codejail.languages.python3,
-}
+from .settings import get_manager_config_values, MANAGER_CONFIG_DEFAULTS
+from six.moves import range
 
 
 class Manager(object):
@@ -50,6 +48,7 @@ class Manager(object):
         )
 
         for handler_config in watcher_config.get('HANDLERS', []):
+
             handler_name = handler_config['HANDLER']
             mod_name, classname = handler_name.rsplit('.', 1)
             module = importlib.import_module(mod_name)
@@ -60,8 +59,12 @@ class Manager(object):
             codejail_config = handler_config.get("CODEJAIL", None)
             if codejail_config:
                 kw['codejail_python'] = self.enable_codejail(codejail_config)
-
-            handler = getattr(module, classname)
+            try:
+                handler = getattr(module, classname)
+            except AttributeError:
+                if classname == 'urlencode' and mod_name == 'urllib':
+                    module = importlib.import_module('urllib.parse')
+                    handler = getattr(module, classname)
             if kw or inspect.isclass(handler):
                 # handler could be a function or a class
                 handler = handler(**kw)
@@ -83,7 +86,7 @@ class Manager(object):
         and one or more queue configurations from a conf.d
         directory relative to the config_root
         """
-        directory = path(directory)
+        directory = Path(directory)
 
         log_config = directory / 'logging.json'
         if log_config.exists():
@@ -120,11 +123,10 @@ class Manager(object):
         name = codejail_config["name"]
         bin_path = codejail_config['bin_path']
         user = codejail_config.get('user', getpass.getuser())
-        lang = CODEJAIL_LANGUAGES.get(codejail_config.get('lang'), codejail.languages.other)
-        codejail.configure(name, bin_path, user=user, lang=lang)
+        jail_code.configure(name, bin_path, user=user)
         limits = codejail_config.get("limits", {})
         for name, value in limits.items():
-            codejail.limits.set_limit(name, value)
+            jail_code.set_limit(name, value)
         self.log.info("configured codejail -> %s %s %s", name, bin_path, user)
         return name
 

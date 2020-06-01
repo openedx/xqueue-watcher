@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+from __future__ import unicode_literals
 import time
 import json
 import logging
@@ -5,7 +7,7 @@ import requests
 from requests.auth import HTTPBasicAuth
 import threading
 import multiprocessing
-from settings import MANAGER_CONFIG_DEFAULTS
+from .settings import MANAGER_CONFIG_DEFAULTS
 
 log = logging.getLogger(__name__)
 
@@ -85,7 +87,7 @@ class XQueueClient(object):
                 )
             except requests.exceptions.ConnectionError as e:
                 log.error('Could not connect to server at %s in timeout=%r', url, self.requests_timeout)
-                return (False, e.message)
+                return (False, e)
             if r.status_code == 200:
                 return self._parse_response(r)
             # Django can issue both a 302 to the login page and a
@@ -163,7 +165,7 @@ class XQueueClient(object):
         except requests.exceptions.Timeout:
             return True
         except Exception as e:
-            log.exception(e.message)
+            log.exception(e)
             return True
 
     def run(self):

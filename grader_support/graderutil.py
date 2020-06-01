@@ -2,6 +2,8 @@
 Utilities to help manage code execution and testing.
 """
 
+from __future__ import absolute_import
+from __future__ import unicode_literals
 import contextlib
 import os, os.path
 import shutil

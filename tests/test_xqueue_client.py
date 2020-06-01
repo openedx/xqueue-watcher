@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+from __future__ import unicode_literals
 import unittest
 import mock
 import json
@@ -52,12 +54,12 @@ class ClientTests(unittest.TestCase):
         self.excepted = False
 
         self.sample_item = {
-            u'return_code': 0,
-            u'success': 1,
-            u'content': json.dumps({
-                u'xqueue_header': {u'hello': 1},
-                u'xqueue_body': {
-                    u'blah': u'blah'
+            'return_code': 0,
+            'success': 1,
+            'content': json.dumps({
+                'xqueue_header': {'hello': 1},
+                'xqueue_body': {
+                    'blah': 'blah'
                 }
             })
         }

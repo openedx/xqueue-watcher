@@ -12,6 +12,7 @@ itself.
 
 from __future__ import absolute_import, print_function
 
+from __future__ import unicode_literals
 import gettext
 import json
 import random
@@ -22,7 +23,7 @@ import six
 from . import gradelib    # to set the random seed
 from . import graderutil
 
-usage = u"Usage: run.py GRADER SUBMISSION seed"  # pylint: disable=invalid-name
+usage = "Usage: run.py GRADER SUBMISSION seed"  # pylint: disable=invalid-name
 
 # Install gettext for translation support. This gettext install works within the sandbox,
 # so the path to graders/conf/locale can be relative.
