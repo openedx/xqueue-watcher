@@ -1,16 +1,12 @@
-dist: trusty
 language: python
 python:
-  - "2.7"
+  - 2.7
+  - 3.5
 install:
-  - "sudo apt-get install apparmor-utils -y"
-  - "sudo apt-get install python3 -y"
-  - "make test.requirements"
-  - "virtualenv --python=`which python3` ./py3venv"
+  - make travis.requirements
 script:
-  - "XQUEUEWATCHER_PYTHON3_BIN=`pwd`/py3venv/bin/python3 nosetests --with-coverage --cover-package=xqueue_watcher --cover-xml"
+  - make test
 after_script:
-  - "pip install coveralls"
   - coveralls
 branches:
     only:
