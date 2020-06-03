@@ -11,10 +11,7 @@ import logging
 from xqueue_watcher import manager
 from tests.test_xqueue_client import MockXQueueServer
 
-try:
-    from StringIO import StringIO ## for Python 2
-except ImportError:
-    from io import StringIO ## for Python 3
+from six import StringIO
 
 try:
     import codejail

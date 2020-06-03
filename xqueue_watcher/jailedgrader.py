@@ -89,7 +89,7 @@ class JailedGrader(Grader):
         return r
 
     def grade(self, grader_path, grader_config, submission):
-        if type(submission) != str:
+        if type(submission) != six.text_type:
             self.log.warning("Submission is NOT unicode")
 
         results = {
@@ -125,7 +125,7 @@ class JailedGrader(Grader):
         # Import the grader, straight from the original file.  (It probably isn't in
         # sys.path, and we may be in a long running gunicorn process, so we don't
         # want to add stuff to sys.path either.)
-        grader_module = imp.load_source("grader_module", str(grader_path))
+        grader_module = imp.load_source("grader_module", six.text_type(grader_path))
         grader = grader_module.grader
 
         # Preprocess for grader-specified errors
