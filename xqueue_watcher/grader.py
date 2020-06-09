@@ -1,12 +1,14 @@
 """
 Implementation of a grader compatible with XServer
 """
+from __future__ import absolute_import
+from __future__ import unicode_literals
 import imp
 import sys
 import cgi
 import time
 import json
-from path import path
+from path import Path
 import logging
 import multiprocessing
 from statsd import statsd
@@ -17,9 +19,9 @@ def format_errors(errors):
     error_string = ''
     error_list = [esc(e) for e in errors or []]
     if error_list:
-        items = u'\n'.join([u'<li><pre>{0}</pre></li>\n'.format(e) for e in error_list])
-        error_string = u'<ul>\n{0}</ul>\n'.format(items)
-        error_string = u'<div class="result-errors">{0}</div>'.format(error_string)
+        items = '\n'.join(['<li><pre>{0}</pre></li>\n'.format(e) for e in error_list])
+        error_string = '<ul>\n{0}</ul>\n'.format(items)
+        error_string = '<div class="result-errors">{0}</div>'.format(error_string)
     return error_string
 
 
@@ -28,9 +30,9 @@ def to_dict(result):
     # TODO: replace with mako template
     esc = cgi.escape
     if result[1]:
-        long_desc = u'<p>{0}</p>'.format(esc(result[1]))
+        long_desc = '<p>{0}</p>'.format(esc(result[1]))
     else:
-        long_desc = u''
+        long_desc = ''
     return {'short-description': esc(result[0]),
             'long-description': long_desc,
             'correct': result[2],   # Boolean; don't escape.
@@ -40,7 +42,7 @@ def to_dict(result):
 
 
 class Grader(object):
-    results_template = u"""
+    results_template = """
 <div class="test">
 <header>Test results</header>
   <section>
@@ -55,7 +57,7 @@ class Grader(object):
 </div>
 """
 
-    results_correct_template = u"""
+    results_correct_template = """
   <div class="result-output result-correct">
     <h4>{short-description}</h4>
     <pre>{long-description}</pre>
@@ -68,7 +70,7 @@ class Grader(object):
   </div>
 """
 
-    results_incorrect_template = u"""
+    results_incorrect_template = """
   <div class="result-output result-incorrect">
     <h4>{short-description}</h4>
     <pre>{long-description}</pre>
@@ -88,7 +90,7 @@ class Grader(object):
         logger_name = name of logger
         """
         self.log = logging.getLogger(logger_name)
-        self.grader_root = path(grader_root)
+        self.grader_root = Path(grader_root)
 
         self.fork_per_item = fork_per_item
 

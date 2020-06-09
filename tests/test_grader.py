@@ -1,13 +1,15 @@
+from __future__ import absolute_import
+from __future__ import unicode_literals
 import unittest
 import mock
 import json
 import sys
-from path import path
+from path import Path
 from six.moves.queue import Queue
 
 from xqueue_watcher import grader
 
-MYDIR = path(__file__).dirname() / 'fixtures'
+MYDIR = Path(__file__).dirname() / 'fixtures'
 
 
 class MockGrader(grader.Grader):
@@ -24,14 +26,14 @@ class MockGrader(grader.Grader):
         elif grader_path.endswith('/incorrect'):
             tests.append(('short', 'long', False, 'expected', 'actual'))
             errors.append('THIS IS AN ERROR')
-            errors.append(u'\x00\xc3\x83\xc3\xb8\x02')
+            errors.append('\x00\xc3\x83\xc3\xb8\x02')
 
         try:
-            import codejail
+            from codejail import jail_code
         except ImportError:
             tests.append(("codejail", "codejail not installed", True, "", ""))
         else:
-            if codejail.is_configured("python"):
+            if jail_code.is_configured("python"):
                 tests.append(("codejail", "codejail configured", True, "", ""))
             else:
                 tests.append(("codejail", "codejail not configured", True, "", ""))

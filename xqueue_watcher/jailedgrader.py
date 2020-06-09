@@ -1,13 +1,16 @@
 """
 An implementation of a grader that uses codejail to sandbox submission execution.
 """
+from __future__ import absolute_import
+from __future__ import unicode_literals
+import codecs
 import os
 import sys
 import imp
 import json
 import random
 import gettext
-from path import path
+from path import Path
 import six
 
 import codejail
@@ -17,6 +20,7 @@ from grader_support.graderutil import LANGUAGE
 import grader_support
 
 from .grader import Grader
+from six.moves import zip
 
 TIMEOUT = 1
 
@@ -26,14 +30,14 @@ def path_to_six():
     """
     if any(six.__file__.endswith(suffix) for suffix in ('.pyc', '.pyo')):
         # __file__ points to the compiled bytecode in python 2
-        return path(six.__file__[:-1])
+        return Path(six.__file__[:-1])
     else:
         # __file__ points to the .py file in python 3
-        return path(six.__file__)
+        return Path(six.__file__)
 
 
 SUPPORT_FILES = [
-    path(grader_support.__file__).dirname(),
+    Path(grader_support.__file__).dirname(),
     path_to_six(),
 ]
 
@@ -73,20 +77,19 @@ class JailedGrader(Grader):
 
     def _enable_i18n(self, language):
         trans = gettext.translation('graders', localedir=self.locale_dir, fallback=True, languages=[language])
-        trans.install(unicode=True, names=None)
+        trans.install(names=None)
 
     def _run(self, grader_path, thecode, seed):
         files = SUPPORT_FILES + [grader_path]
         if self.locale_dir.exists():
             files.append(self.locale_dir)
         extra_files = [('submission.py', thecode.encode('utf-8'))]
-        argv = ["-m", "grader_support.run", path(grader_path).basename(), 'submission.py', seed]
-        jail = codejail.get_codejail(self.codejail_python)
-        r = jail.jail_code(files=files, extra_files=extra_files, argv=argv)
+        argv = ["-m", "grader_support.run", Path(grader_path).basename(), 'submission.py', seed]
+        r = codejail.jail_code.jail_code(self.codejail_python, files=files, extra_files=extra_files, argv=argv)
         return r
 
     def grade(self, grader_path, grader_config, submission):
-        if type(submission) != unicode:
+        if type(submission) != six.text_type:
             self.log.warning("Submission is NOT unicode")
 
         results = {
@@ -115,14 +118,14 @@ class JailedGrader(Grader):
 
         self._enable_i18n(grader_config.get("lang", LANGUAGE))
 
-        answer_path = path(grader_path).dirname() / 'answer.py'
-        with open(answer_path) as f:
+        answer_path = Path(grader_path).dirname() / 'answer.py'
+        with open(answer_path, 'rb') as f:
             answer = f.read().decode('utf-8')
 
         # Import the grader, straight from the original file.  (It probably isn't in
         # sys.path, and we may be in a long running gunicorn process, so we don't
         # want to add stuff to sys.path either.)
-        grader_module = imp.load_source("grader_module", grader_path)
+        grader_module = imp.load_source("grader_module", six.text_type(grader_path))
         grader = grader_module.grader
 
         # Preprocess for grader-specified errors
@@ -148,7 +151,7 @@ class JailedGrader(Grader):
             expected_outputs = None  # in case run_trusted raises an exception.
             expected_outputs = self._run(grader_path, processed_answer, seed).stdout
             if expected_outputs:
-                expected = json.loads(expected_outputs)
+                expected = json.loads(expected_outputs.decode('utf-8'))
                 expected_ok = True
         except Exception:
             expected_exc = sys.exc_info()
@@ -177,7 +180,7 @@ class JailedGrader(Grader):
             actual_outputs = None   # in case run raises an exception.
             actual_outputs = self._run(grader_path, processed_submission, seed).stdout
             if actual_outputs:
-                actual = json.loads(actual_outputs)
+                actual = json.loads(actual_outputs.decode('utf-8'))
                 actual_ok = True
             else:
                 results['errors'].append(_("There was a problem running your solution (Staff debug: L379)."))
@@ -231,7 +234,7 @@ class JailedGrader(Grader):
                     if e is not None:
                         act_output += '\n'
                         error_msg = _("ERROR")
-                        act_output += u"*** {error_msg}: {error_detail} ***".format(
+                        act_output += "*** {error_msg}: {error_detail} ***".format(
                             error_msg=error_msg,
                             error_detail=e
                         )

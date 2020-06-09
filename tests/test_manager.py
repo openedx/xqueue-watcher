@@ -1,6 +1,7 @@
-from StringIO import StringIO
+from __future__ import absolute_import
+from __future__ import unicode_literals
 import unittest
-from path import path
+from path import Path
 import json
 from mock import Mock
 import time
@@ -9,6 +10,8 @@ import sys
 import logging
 from xqueue_watcher import manager
 from tests.test_xqueue_client import MockXQueueServer
+
+from six import StringIO
 
 try:
     import codejail
@@ -67,12 +70,12 @@ class ManagerTests(unittest.TestCase):
             }
         }
         self.m.enable_codejail(config)
-        self.assertTrue(codejail.is_configured("python"))
+        self.assertTrue(codejail.jail_code.is_configured("python"))
         self.m.enable_codejail({
             "name": "other-python",
             "bin_path": "/usr/local/bin/python"
             })
-        self.assertTrue(codejail.is_configured("other-python"))
+        self.assertTrue(codejail.jail_code.is_configured("other-python"))
 
         # now we'll see if the codejail config is inherited in the handler subprocess
         handler_config = self.config['test1'].copy()
@@ -120,12 +123,12 @@ class ManagerTests(unittest.TestCase):
         def slow_reply(url, response, session):
             if url.endswith('get_submission/'):
                 response.json.return_value = {
-                    u'return_code': 0,
-                    u'success': 1,
-                    u'content': json.dumps({
-                        u'xqueue_header': {u'hello': 1},
-                        u'xqueue_body': {
-                            u'blah': json.dumps({}),
+                    'return_code': 0,
+                    'success': 1,
+                    'content': json.dumps({
+                        'xqueue_header': {'hello': 1},
+                        'xqueue_body': {
+                            'blah': json.dumps({}),
                         }
                     })
                 }
@@ -154,9 +157,12 @@ class ManagerTests(unittest.TestCase):
         sys.stderr = StringIO()
         self.assertRaises(SystemExit, manager.main, [])
         sys.stderr.seek(0)
-        self.assertEqual(sys.stderr.read(), 'usage: xqueue_watcher [-h] -d CONFIG_ROOT\nxqueue_watcher: error: argument -d/--config_root is required\n')
+        err_msg = sys.stderr.read()
+        self.assertIn('usage: xqueue_watcher [-h] -d CONFIG_ROOT', err_msg)
+        self.assertIn('-d/--config_root', err_msg)
+        self.assertIn('required', err_msg)
         sys.stderr = stderr
 
-        mydir = path(__file__).dirname()
+        mydir = Path(__file__).dirname()
         args = ['-d', mydir / "fixtures/config"]
         self.assertEqual(manager.main(args), 0)
