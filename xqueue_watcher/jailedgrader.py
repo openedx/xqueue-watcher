@@ -8,7 +8,7 @@ import imp
 import json
 import random
 import gettext
-from path import Path
+from pathlib import Path
 import six
 
 import codejail
@@ -35,8 +35,8 @@ def path_to_six():
 
 
 SUPPORT_FILES = [
-    Path(grader_support.__file__).dirname(),
-    path_to_six(),
+    str(Path(grader_support.__file__).parent),
+    str(path_to_six()),
 ]
 
 
@@ -74,15 +74,15 @@ class JailedGrader(Grader):
         os.environ["OPENBLAS_NUM_THREADS"] = "1"
 
     def _enable_i18n(self, language):
-        trans = gettext.translation('graders', localedir=self.locale_dir, fallback=True, languages=[language])
+        trans = gettext.translation('graders', localedir=str(self.locale_dir), fallback=True, languages=[language])
         trans.install(names=None)
 
     def _run(self, grader_path, thecode, seed):
-        files = SUPPORT_FILES + [grader_path]
+        files = SUPPORT_FILES + [str(grader_path)]
         if self.locale_dir.exists():
-            files.append(self.locale_dir)
+            files.append(str(self.locale_dir))
         extra_files = [('submission.py', thecode.encode('utf-8'))]
-        argv = ["-m", "grader_support.run", Path(grader_path).basename(), 'submission.py', seed]
+        argv = ["-m", "grader_support.run", str(Path(grader_path).name), 'submission.py', seed]
         r = codejail.jail_code.jail_code(self.codejail_python, files=files, extra_files=extra_files, argv=argv)
         return r
 
@@ -116,14 +116,14 @@ class JailedGrader(Grader):
 
         self._enable_i18n(grader_config.get("lang", LANGUAGE))
 
-        answer_path = Path(grader_path).dirname() / 'answer.py'
+        answer_path = str(Path(grader_path).parent / 'answer.py')
         with open(answer_path, 'rb') as f:
             answer = f.read().decode('utf-8')
 
         # Import the grader, straight from the original file.  (It probably isn't in
         # sys.path, and we may be in a long running gunicorn process, so we don't
         # want to add stuff to sys.path either.)
-        grader_module = imp.load_source("grader_module", six.text_type(grader_path))
+        grader_module = imp.load_source("grader_module", str(grader_path))
         grader = grader_module.grader
 
         # Preprocess for grader-specified errors
@@ -279,8 +279,8 @@ def main(args):     # pragma: no cover
         submission = f.read().decode('utf-8')
 
     grader_config = {"lang": "eo"}
-    grader_path = path(grader_path).abspath()
-    g = JailedGrader(grader_root=grader_path.dirname().parent.parent)
+    grader_path = Path(grader_path)
+    g = JailedGrader(grader_root=grader_path.parent.parent.parent)
     pprint(g.grade(grader_path, grader_config, submission))
 
 

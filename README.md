@@ -7,26 +7,21 @@ This is an implementation of a polling [XQueue](https://github.com/edx/xqueue) c
 Running
 =======
 
-`python -m xqueue_watcher -d [path to settings directory]`
+`python -m xqueue_watcher -f [path to settings file]`
 
 
-JSON configuration file
+YAML configuration file
 =======================
-	{
-		"test-123": {
-			"SERVER": "http://127.0.0.1:18040",
-			"CONNECTIONS": 1,
-			"AUTH": ["lms", "lms"],
-			"HANDLERS": [
-				{
-					"HANDLER": "xqueue_watcher.grader.Grader",
-					"KWARGS": {
-						"grader_root": "/path/to/course/graders/",
-					}
-				}
-			]
-		}
-	}
+	CLIENTS:
+	  - QUEUE_NAME: "test-123"
+	    SERVER: "http://127.0.0.1:18040"
+	    CONNECTIONS: 2
+	    AUTH: ["lms", "password"]
+	    HANDLERS:
+	      - HANDLER: "xqueue_watcher.jailedgrader.JailedGrader"
+	        KWARGS:
+	          grader_root: "/edx/data/MITx-7.QBWx/graders/"
+
 
 * `test-123`: the name of the queue
 * `SERVER`: XQueue server address
@@ -51,10 +46,21 @@ Sandboxing
 ==========
 To sandbox python, use [CodeJail](https://github.com/edx/codejail). In your handler configuration, add:
 
-	"CODEJAIL": {
-		"name": "python",
-		"python_bin": "/path/to/sandbox/python",
-		"user": "sandbox_username"
-	}
+    CODEJAIL:
+      name: "7qbwx"
+      bin_path: "/path/to/venv/bin/python"
+      user: "user2"
 
 Then, `codejail_python` will automatically be added to the kwargs for your handler. You can then import codejail.jail_code and run `jail_code("python", code...)`. You can define multiple sandboxes and use them as in `jail_code("special-python", ...)`
+
+
+Deploying With Docker
+=====================
+To deploy xqueue watcher using Docker:
+
+* Create a local directory containing a configuration file called `config.yml`
+* Run the container: `docker run -v /path/to/config/dir:/edx/etc/xqueue_watcher edxops/xqueue_watcher:latest`
+
+To make grader code available in the container, map a data directory:
+	`-v /path/to/graders:/edx/data/`
+And set `grader_root` to `/edx/data` in your configuration file.

@@ -2,12 +2,12 @@ import unittest
 import mock
 import json
 import sys
-from path import Path
+from pathlib import Path
 from six.moves.queue import Queue
 
 from xqueue_watcher import grader
 
-MYDIR = Path(__file__).dirname() / 'fixtures'
+MYDIR = Path(__file__).parent / 'fixtures'
 
 
 class MockGrader(grader.Grader):
@@ -16,12 +16,12 @@ class MockGrader(grader.Grader):
         errors = []
         correct = 0
         score = 0
-        if grader_path.endswith('/correct'):
+        if str(grader_path).endswith('/correct'):
             correct = 1
             score = 1
             tests.append(('short', 'long', True, 'expected', 'actual'))
             tests.append(('short', '', True, 'expected', 'actual'))
-        elif grader_path.endswith('/incorrect'):
+        elif str(grader_path).endswith('/incorrect'):
             tests.append(('short', 'long', False, 'expected', 'actual'))
             errors.append('THIS IS AN ERROR')
             errors.append('\x00\xc3\x83\xc3\xb8\x02')

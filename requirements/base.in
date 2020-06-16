@@ -2,10 +2,9 @@
 
 -c constraints.txt
 
-dogstatsd-python
 newrelic
-path.py
 requests
 six
+pyyaml
 
--e git+https://github.com/edx/codejail.git@4127fc4bd5775cc72aee8d7f0a70e31405e22439#egg=codejail
+-e git+https://github.com/edx/codejail.git@e485de290f5ba864edace44dfad1a5915914d659#egg=codejail

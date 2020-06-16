@@ -2,14 +2,12 @@
 Implementation of a grader compatible with XServer
 """
 import html
-import imp
 import sys
 import time
 import json
-from path import Path
+from pathlib import Path
 import logging
 import multiprocessing
-from statsd import statsd
 
 
 def format_errors(errors):
@@ -111,7 +109,6 @@ class Grader(object):
 
     def process_item(self, content, queue=None):
         try:
-            statsd.increment('xqueuewatcher.process-item')
             body = content['xqueue_body']
             files = content['xqueue_files']
 
@@ -124,25 +121,22 @@ class Grader(object):
             except ValueError as err:
                 # If parsing json fails, erroring is fine--something is wrong in the content.
                 # However, for debugging, still want to see what the problem is
-                statsd.increment('xqueuewatcher.grader_payload_error')
 
                 self.log.debug("error parsing: '{0}' -- {1}".format(payload, err))
                 raise
 
             self.log.debug("Processing submission, grader payload: {0}".format(payload))
             relative_grader_path = grader_config['grader']
-            grader_path = (self.grader_root / relative_grader_path).abspath()
+            grader_path = str(self.grader_root / relative_grader_path)
             start = time.time()
             results = self.grade(grader_path, grader_config, student_response)
 
-            statsd.histogram('xqueuewatcher.grading-time', time.time() - start)
 
             # Make valid JSON message
             reply = {'correct': results['correct'],
                      'score': results['score'],
                      'msg': self.render_results(results)}
 
-            statsd.increment('xqueuewatcher.replies (non-exception)')
         except Exception as e:
             self.log.exception("process_item")
             if queue:

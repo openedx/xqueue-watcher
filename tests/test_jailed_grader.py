@@ -3,7 +3,7 @@ import os
 import sys
 import textwrap
 import unittest
-from path import Path
+from pathlib import Path
 
 from xqueue_watcher.jailedgrader import JailedGrader
 from codejail.jail_code import configure
@@ -21,7 +21,7 @@ class JailedGraderTests(unittest.TestCase):
                     user=getpass.getuser(),
                 )
                 break
-        self.grader_root = Path(__file__).dirname() / 'fixtures'
+        self.grader_root = Path(__file__).parent / 'fixtures'
         self.g = JailedGrader(grader_root=self.grader_root)
         self.g3 = JailedGrader(grader_root=self.grader_root, codejail_python='python3')
 
