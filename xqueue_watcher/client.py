@@ -1,6 +1,7 @@
 import time
 import json
 import logging
+import random
 import requests
 from requests.auth import HTTPBasicAuth
 import threading
@@ -18,6 +19,7 @@ class XQueueClient(object):
                  http_basic_auth=MANAGER_CONFIG_DEFAULTS['HTTP_BASIC_AUTH'],
                  requests_timeout=MANAGER_CONFIG_DEFAULTS['REQUESTS_TIMEOUT'],
                  poll_interval=MANAGER_CONFIG_DEFAULTS['POLL_INTERVAL'],
+                 idle_poll_interval=MANAGER_CONFIG_DEFAULTS['IDLE_POLL_INTERVAL'],
                  login_poll_interval=MANAGER_CONFIG_DEFAULTS['LOGIN_POLL_INTERVAL'],
                  follow_client_redirects=MANAGER_CONFIG_DEFAULTS['FOLLOW_CLIENT_REDIRECTS']):
         super(XQueueClient, self).__init__()
@@ -29,8 +31,10 @@ class XQueueClient(object):
         self.username, self.password = xqueue_auth
         self.requests_timeout = requests_timeout
         self.poll_interval = poll_interval
+        self.idle_poll_interval = idle_poll_interval
         self.login_poll_interval = login_poll_interval
         self.follow_client_redirects = follow_client_redirects
+        self.last_submission = 0
 
         if http_basic_auth is not None:
             self.http_basic_auth = HTTPBasicAuth(*http_basic_auth)
@@ -159,6 +163,7 @@ class XQueueClient(object):
             if success:
                 self.processing = True
                 success = self._handle_submission(content)
+                self.last_submission = time.time()
             return success
         except requests.exceptions.Timeout:
             return True
@@ -184,9 +189,16 @@ class XQueueClient(object):
                         num_tries)
                 else:
                     break
+        poll_interval = self.poll_interval
         while self.running:
             if not self.process_one():
-                time.sleep(self.poll_interval)
+                jitter = random.random() * 3
+                if time.time() - self.last_submission > (self.idle_poll_interval * 3):
+                    # if it's been more than 3x the idle time since last submission,
+                    # go into a slower poll interval
+                    time.sleep(self.idle_poll_interval + jitter)
+                else:
+                    time.sleep(self.poll_interval + jitter)
         return True
 
 
