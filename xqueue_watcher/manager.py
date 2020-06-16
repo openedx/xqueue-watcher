@@ -2,7 +2,6 @@
 import getpass
 import importlib
 import inspect
-import json
 import logging
 import logging.config
 from path import Path
@@ -10,13 +9,14 @@ import signal
 import sys
 import time
 
+import yaml
+
 from codejail import jail_code
 
-from .settings import get_manager_config_values, MANAGER_CONFIG_DEFAULTS
-from six.moves import range
+from .settings import MANAGER_CONFIG_DEFAULTS
 
 
-class Manager(object):
+class Manager:
     """
     Manages polling connections to XQueue.
     """
@@ -24,8 +24,11 @@ class Manager(object):
         self.clients = []
         self.log = logging
         self.manager_config = MANAGER_CONFIG_DEFAULTS.copy()
+        self.config_file = None
+        self.last_configured = 0
+        self.configured_log = False
 
-    def client_from_config(self, queue_name, watcher_config):
+    def client_from_config(self, watcher_config):
         """
         Return an XQueueClient from the configuration object.
         """
@@ -33,12 +36,13 @@ class Manager(object):
 
         klass = getattr(client, watcher_config.get('CLASS', 'XQueueClientThread'))
         watcher = klass(
-            queue_name,
+            watcher_config['QUEUE_NAME'],
             xqueue_server=watcher_config.get('SERVER', 'http://localhost:18040'),
             xqueue_auth=watcher_config.get('AUTH', (None, None)),
             http_basic_auth=self.manager_config['HTTP_BASIC_AUTH'],
             requests_timeout=self.manager_config['REQUESTS_TIMEOUT'],
             poll_interval=self.manager_config['POLL_INTERVAL'],
+            idle_poll_interval=self.manager_config['IDLE_POLL_INTERVAL'],
             login_poll_interval=self.manager_config['LOGIN_POLL_INTERVAL'],
         )
 
@@ -70,34 +74,44 @@ class Manager(object):
         """
         Configure XQueue clients.
         """
-        for queue_name, config in configuration.items():
-            for i in range(config.get('CONNECTIONS', 1)):
-                watcher = self.client_from_config(queue_name, config)
-                self.clients.append(watcher)
+        for i in range(configuration.get('CONNECTIONS', 1)):
+            watcher = self.client_from_config(configuration)
+            self.clients.append(watcher)
 
-    def configure_from_directory(self, directory):
+    def configure_from_file(self, config_file):
         """
-        Load configuration files from the config_root
-        and one or more queue configurations from a conf.d
-        directory relative to the config_root
+        Configura manager from a yaml configuration file
         """
-        directory = Path(directory)
+        self.config_file = Path(config_file)
+        if self.did_config_change():
+            if self.last_configured:
+                self.log.info('config file %s changed.', self.config_file)
+            with open(self.config_file, 'rb') as fp:
+                config = yaml.full_load(fp) or {}
 
-        log_config = directory / 'logging.json'
-        if log_config.exists():
-            with open(log_config) as config:
-                logging.config.dictConfig(json.load(config))
+            if not self.configured_log:
+                log_config = config.get('LOGGING')
+                if log_config:
+                    logging.config.dictConfig(config.get('LOGGING', {}))
+                    self.configured_log = True
+                else:
+                    logging.basicConfig(level="DEBUG")
+                self.log = logging.getLogger('xqueue_watcher.manager')
+            self.manager_config = MANAGER_CONFIG_DEFAULTS.copy()
+            self.manager_config.update(config.get('MANAGER', {}))
+
+            for queue_config in config.get('CLIENTS', []):
+                self.configure(queue_config)
+            self.last_configured = self.config_file.stat().st_mtime
+            return True
         else:
-            logging.basicConfig(level="DEBUG")
-        self.log = logging.getLogger('xqueue_watcher.manager')
+            return False
 
-        app_config_path = directory / 'xqwatcher.json'
-        self.manager_config = get_manager_config_values(app_config_path)
-
-        confd = directory / 'conf.d'
-        for watcher in confd.files('*.json'):
-            with open(watcher) as queue_config:
-                self.configure(json.load(queue_config))
+    def did_config_change(self):
+        """
+        Returns whether configuration file changed since last time it was loaded.
+        """
+        return self.config_file.stat().st_mtime > self.last_configured
 
     def enable_codejail(self, codejail_config):
         """
@@ -137,25 +151,47 @@ class Manager(object):
         """
         Monitor clients.
         """
-        if not self.clients:
-            return
         signal.signal(signal.SIGTERM, self.shutdown)
+        config_disappeared = False
         while 1:
+            if not self.clients:
+                self.log.warning('No clients configured in %s', self.config_file)
+            try:
+                time.sleep(self.manager_config['POLL_TIME'])
+            except KeyboardInterrupt:  # pragma: no cover
+                self.shutdown()
+            try:
+                # check for config file changes
+                if self.did_config_change():
+                    self.restart()
+                    config_disappeared = False
+            except FileNotFoundError:
+                if config_disappeared:
+                    self.log.error('Config file %s disappeared. Exiting', self.config_file)
+                    self.shutdown()
+                else:
+                    # in case the file was slow to move,
+                    # give one more try through the loop before restarting
+                    config_disappeared = True
+                    self.log.error('Config file %s disappeared. Retrying', self.config_file)
+
             for client in self.clients:
                 if not client.is_alive():
                     self.log.error('Client died -> %r',
                                    client.queue_name)
                     self.shutdown()
-                try:
-                    time.sleep(self.manager_config['POLL_TIME'])
-                except KeyboardInterrupt:  # pragma: no cover
-                    self.shutdown()
 
-    def shutdown(self, *args):
+    def restart(self):
+        self.shutdown(exit=False)
+        self.log.info('Reloading config from %s', self.config_file)
+        self.configure_from_file(self.config_file)
+        self.start()
+
+    def shutdown(self, *args, exit=True):
         """
         Cleanly shutdown all clients.
         """
-        self.log.info('shutting down')
+        self.log.info('Shutting down')
         while self.clients:
             client = self.clients.pop()
             client.shutdown()
@@ -166,25 +202,21 @@ class Manager(object):
                     self.log.exception("joining")
                     sys.exit(9)
             self.log.info('%r done', client)
-        self.log.info('done')
-        sys.exit()
+        self.log.info('Done')
+        if exit:
+            sys.exit()
 
 
 def main(args=None):
     import argparse
     parser = argparse.ArgumentParser(prog="xqueue_watcher", description="Run grader from settings")
-    parser.add_argument('-d', '--config_root', required=True,
-                        help='Configuration root from which to load general '
-                             'watcher configuration. Queue configuration '
-                             'is loaded from a conf.d directory relative to '
-                             'the root')
+    parser.add_argument('-d', '--config_file', required=True,
+                        help='yaml file to use for all configuration ')
     args = parser.parse_args(args)
 
     manager = Manager()
-    manager.configure_from_directory(args.config_root)
+    manager.configure_from_file(args.config_file)
 
-    if not manager.clients:
-        print("No xqueue watchers configured")
     manager.start()
     manager.wait()
     return 0
