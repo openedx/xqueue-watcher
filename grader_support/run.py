@@ -10,9 +10,6 @@ various sample inputs, and does not have answers, bad student code can only hurt
 itself.
 """
 
-from __future__ import absolute_import, print_function
-
-from __future__ import unicode_literals
 import gettext
 import json
 import random
@@ -20,7 +17,7 @@ import sys
 
 import six
 
-from . import gradelib    # to set the random seed
+from . import gradelib  # to set the random seed
 from . import graderutil
 
 usage = "Usage: run.py GRADER SUBMISSION seed"  # pylint: disable=invalid-name
@@ -84,7 +81,7 @@ def run(grader_name, submission_name, seed=1):
     # hurts them).
     gradelib.rand = random.Random(seed)
     # Also seed the random singleton in case the exercise uses random numbers.
-    random.seed(seed+1)
+    random.seed(seed + 1)
 
     grader_mod, results = import_captured(grader_name, our_code=True)
     if grader_mod:
@@ -140,9 +137,11 @@ def run(grader_name, submission_name, seed=1):
         if grader.uncaught_end_tests():
             # We raised EndTest more than we caught them, the student must be
             # catching them, inadvertently or not.
-            output['submission']['exception'] = _("Your code interfered with our grader.  Don't use bare 'except' clauses.")  # pylint: disable=line-too-long
+            output['submission']['exception'] = _(
+                "Your code interfered with our grader.  Don't use bare 'except' clauses.")  # pylint: disable=line-too-long
             output['submission']['status'] = 'caught'
     return output
+
 
 def import_captured(name, our_code=False):
     """
@@ -174,6 +173,7 @@ def import_captured(name, our_code=False):
     result['stdout'] = stdout.getvalue()
     return mod, result
 
+
 def main(args):  # pragma: no cover
     """
     Execute the grader from the command line
@@ -192,5 +192,6 @@ def main(args):  # pragma: no cover
     output = run(grader_name, submission_name, seed)
     print(json.dumps(output))
 
-if __name__ == '__main__':      # pragma: no cover
+
+if __name__ == '__main__':  # pragma: no cover
     main(sys.argv[1:])

@@ -1,8 +1,6 @@
 """
 Implementation of a grader compatible with XServer
 """
-from __future__ import absolute_import
-from __future__ import unicode_literals
 import html
 import imp
 import sys
