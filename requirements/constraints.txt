@@ -10,3 +10,4 @@
 
 # later versions require python > 3.5
 zipp<2.0
+mock<4.0

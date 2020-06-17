@@ -10,13 +10,13 @@ chardet==3.0.4            # via -r requirements/production.txt, requests
 dogstatsd-python==0.5.6   # via -r requirements/production.txt
 idna==2.9                 # via -r requirements/production.txt, requests
 importlib-metadata==1.6.1  # via -r requirements/production.txt, path
-mock==4.0.2               # via -r requirements/test.in
+mock==3.0.5               # via -c requirements/constraints.txt, -r requirements/test.in
 newrelic==5.14.0.142      # via -r requirements/production.txt
 nose==1.3.7               # via -r requirements/test.in
 path.py==12.4.0           # via -r requirements/production.txt
 path==13.1.0              # via -r requirements/production.txt, path.py
 pyyaml==5.3.1             # via -r requirements/production.txt
 requests==2.23.0          # via -r requirements/production.txt
-six==1.15.0               # via -r requirements/production.txt
+six==1.15.0               # via -r requirements/production.txt, mock
 urllib3==1.25.9           # via -r requirements/production.txt, requests
 zipp==1.2.0               # via -c requirements/constraints.txt, -r requirements/production.txt, importlib-metadata

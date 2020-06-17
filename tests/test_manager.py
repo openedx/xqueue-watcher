@@ -22,7 +22,9 @@ class ManagerTests(unittest.TestCase):
     def setUp(self):
         self.m = manager.Manager()
         self.config = {
-            'test1': {
+            'CLIENTS':[
+                {
+                'QUEUE_NAME': 'test1',
                 'SERVER': 'http://test1',
                 'AUTH': ('test', 'test'),
                 'HANDLERS': [
@@ -30,8 +32,9 @@ class ManagerTests(unittest.TestCase):
                         'HANDLER': 'tests.test_grader.MockGrader',
                     }
                 ]
-            },
-            'test2': {
+                },
+                {
+                'QUEUE_NAME': 'test2',
                 'AUTH': ('test', 'test'),
                 'CONNECTIONS': 2,
                 'SERVER': 'http://test2',
@@ -40,7 +43,8 @@ class ManagerTests(unittest.TestCase):
                         'HANDLER': 'urllib.urlencode'
                     }
                 ]
-            }
+                }
+            ]
         }
 
     def tearDown(self):
@@ -76,8 +80,8 @@ class ManagerTests(unittest.TestCase):
         self.assertTrue(codejail.jail_code.is_configured("other-python"))
 
         # now we'll see if the codejail config is inherited in the handler subprocess
-        handler_config = self.config['test1'].copy()
-        client = self.m.client_from_config("test", handler_config)
+        handler_config = self.config['CLIENTS'][0].copy()
+        client = self.m.client_from_config(handler_config)
         client.session = MockXQueueServer()
         client._handle_submission(json.dumps({
             "xqueue_header": "",
@@ -114,7 +118,7 @@ class ManagerTests(unittest.TestCase):
 
     def test_wait(self):
         # no-op
-        self.m.wait()
+        # self.m.wait()
 
         self.m.configure(self.config)
 
@@ -156,11 +160,11 @@ class ManagerTests(unittest.TestCase):
         self.assertRaises(SystemExit, manager.main, [])
         sys.stderr.seek(0)
         err_msg = sys.stderr.read()
-        self.assertIn('usage: xqueue_watcher [-h] -d CONFIG_ROOT', err_msg)
-        self.assertIn('-d/--config_root', err_msg)
+        self.assertIn('usage: xqueue_watcher [-h] -d CONFIG_FILE', err_msg)
+        self.assertIn('-d/--config_file', err_msg)
         self.assertIn('required', err_msg)
         sys.stderr = stderr
 
         mydir = Path(__file__).dirname()
-        args = ['-d', mydir / "fixtures/config"]
+        args = ['-e', '-d', mydir / "fixtures/config/empty.yml"]
         self.assertEqual(manager.main(args), 0)

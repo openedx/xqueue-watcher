@@ -74,9 +74,10 @@ class Manager:
         """
         Configure XQueue clients.
         """
-        for i in range(configuration.get('CONNECTIONS', 1)):
-            watcher = self.client_from_config(configuration)
-            self.clients.append(watcher)
+        for queue_config in configuration.get('CLIENTS', []) or []:
+            for i in range(queue_config.get('CONNECTIONS', 1)):
+                watcher = self.client_from_config(queue_config)
+                self.clients.append(watcher)
 
     def configure_from_file(self, config_file):
         """
@@ -100,8 +101,7 @@ class Manager:
             self.manager_config = MANAGER_CONFIG_DEFAULTS.copy()
             self.manager_config.update(config.get('MANAGER', {}))
 
-            for queue_config in (config.get('CLIENTS', []) or []):
-                self.configure(queue_config)
+            self.configure(config)
             self.last_configured = self.config_file.stat().st_mtime
             return True
         else:
@@ -111,7 +111,7 @@ class Manager:
         """
         Returns whether configuration file changed since last time it was loaded.
         """
-        return self.config_file.stat().st_mtime > self.last_configured
+        return self.config_file and self.config_file.stat().st_mtime > self.last_configured
 
     def enable_codejail(self, codejail_config):
         """
@@ -147,7 +147,7 @@ class Manager:
             self.log.info('Starting %r', c)
             c.start()
 
-    def wait(self):
+    def wait(self, quit_if_empty=False):
         """
         Monitor clients.
         """
@@ -156,6 +156,8 @@ class Manager:
         while 1:
             if not self.clients:
                 self.log.warning('No clients configured in %s', self.config_file)
+                if quit_if_empty:
+                    return
             try:
                 time.sleep(self.manager_config['POLL_TIME'])
             except KeyboardInterrupt:  # pragma: no cover
@@ -212,11 +214,12 @@ def main(args=None):
     parser = argparse.ArgumentParser(prog="xqueue_watcher", description="Run grader from settings")
     parser.add_argument('-d', '--config_file', required=True,
                         help='yaml file to use for all configuration ')
+    parser.add_argument('-e', '--quit_if_empty', required=False, action='store_true', help='Quit if configuration is empty')
     args = parser.parse_args(args)
 
     manager = Manager()
     manager.configure_from_file(args.config_file)
 
     manager.start()
-    manager.wait()
+    manager.wait(quit_if_empty=args.quit_if_empty)
     return 0

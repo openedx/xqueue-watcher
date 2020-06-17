@@ -7,17 +7,19 @@
 -e git+https://github.com/edx/codejail.git@4127fc4bd5775cc72aee8d7f0a70e31405e22439#egg=codejail  # via -r requirements/test.txt
 certifi==2020.4.5.2       # via -r requirements/test.txt, requests
 chardet==3.0.4            # via -r requirements/test.txt, requests
-coverage==5.1             # via -r requirements/travis.in
+coverage==5.1             # via -r requirements/travis.in, coveralls
+coveralls==2.0.0          # via -r requirements/travis.in
+docopt==0.6.2             # via coveralls
 dogstatsd-python==0.5.6   # via -r requirements/test.txt
 idna==2.9                 # via -r requirements/test.txt, requests
 importlib-metadata==1.6.1  # via -r requirements/test.txt, path
-mock==4.0.2               # via -r requirements/test.txt
+mock==3.0.5               # via -c requirements/constraints.txt, -r requirements/test.txt
 newrelic==5.14.0.142      # via -r requirements/test.txt
 nose==1.3.7               # via -r requirements/test.txt
 path.py==12.4.0           # via -r requirements/test.txt
 path==13.1.0              # via -r requirements/test.txt, path.py
 pyyaml==5.3.1             # via -r requirements/test.txt
-requests==2.23.0          # via -r requirements/test.txt
-six==1.15.0               # via -r requirements/test.txt
+requests==2.23.0          # via -r requirements/test.txt, coveralls
+six==1.15.0               # via -r requirements/test.txt, mock
 urllib3==1.25.9           # via -r requirements/test.txt, requests
 zipp==1.2.0               # via -c requirements/constraints.txt, -r requirements/test.txt, importlib-metadata

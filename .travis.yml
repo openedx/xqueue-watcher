@@ -6,7 +6,7 @@ install:
   - make travis.requirements
 script:
   - make test
-after_script:
+after_success: 
   - coveralls
 branches:
     only:

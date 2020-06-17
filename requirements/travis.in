@@ -4,3 +4,4 @@
 -r test.txt
 
 coverage
+coveralls
