@@ -3,9 +3,9 @@ Implementation of a grader compatible with XServer
 """
 from __future__ import absolute_import
 from __future__ import unicode_literals
+import html
 import imp
 import sys
-import cgi
 import time
 import json
 from path import Path
@@ -15,7 +15,7 @@ from statsd import statsd
 
 
 def format_errors(errors):
-    esc = cgi.escape
+    esc = html.escape
     error_string = ''
     error_list = [esc(e) for e in errors or []]
     if error_list:
@@ -28,7 +28,7 @@ def format_errors(errors):
 def to_dict(result):
     # long description may or may not be provided.  If not, don't display it.
     # TODO: replace with mako template
-    esc = cgi.escape
+    esc = html.escape
     if result[1]:
         long_desc = '<p>{0}</p>'.format(esc(result[1]))
     else:
