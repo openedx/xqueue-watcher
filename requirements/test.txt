@@ -19,4 +19,4 @@ pyyaml==5.3.1             # via -r requirements/production.txt
 requests==2.23.0          # via -r requirements/production.txt
 six==1.15.0               # via -r requirements/production.txt
 urllib3==1.25.9           # via -r requirements/production.txt, requests
-zipp==3.1.0               # via -r requirements/production.txt, importlib-metadata
+zipp==1.2.0               # via -c requirements/constraints.txt, -r requirements/production.txt, importlib-metadata

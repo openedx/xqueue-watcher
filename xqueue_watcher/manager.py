@@ -100,7 +100,7 @@ class Manager:
             self.manager_config = MANAGER_CONFIG_DEFAULTS.copy()
             self.manager_config.update(config.get('MANAGER', {}))
 
-            for queue_config in config.get('CLIENTS', []):
+            for queue_config in (config.get('CLIENTS', []) or []):
                 self.configure(queue_config)
             self.last_configured = self.config_file.stat().st_mtime
             return True

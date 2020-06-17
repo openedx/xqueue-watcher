@@ -11,7 +11,7 @@ CLIENTS:
           lang: python2
           user: "user2"
         KWARGS:
-          grader_root: "../data/MITx-7.QBWx/graders/"
+          grader_root: "/edx/data/MITx-7.QBWx/graders/"
   - QUEUE_NAME: "test-456"
     SERVER: "http://127.0.0.1:18040"
     CONNECTIONS: 2
@@ -24,7 +24,7 @@ CLIENTS:
           lang: python3
           user: "user1"
         KWARGS:
-            grader_root: "../data/MITx-6.00x/graders/python3graders/"
+            grader_root: "/edx/data/MITx-6.00x/graders/python3graders/"
 
 LOGGING:
     loggers:
