@@ -2,8 +2,6 @@
 Utilities to help manage code execution and testing.
 """
 
-from __future__ import absolute_import
-from __future__ import unicode_literals
 import contextlib
 import os, os.path
 import shutil
@@ -38,6 +36,7 @@ def captured_stdout():
     finally:
         sys.stdout = old_stdout
 
+
 class ChangeDirectory(object):
     def __init__(self, new_dir):
         self.old_dir = os.getcwd()
@@ -45,6 +44,7 @@ class ChangeDirectory(object):
 
     def clean_up(self):
         os.chdir(self.old_dir)
+
 
 @contextlib.contextmanager
 def change_directory(new_dir):
@@ -56,6 +56,7 @@ def change_directory(new_dir):
         yield new_dir
     finally:
         cd.clean_up()
+
 
 class TempDirectory(object):
     def __init__(self, delete_when_done=True):
@@ -69,6 +70,7 @@ class TempDirectory(object):
             # if this errors, something is genuinely wrong, so don't ignore errors.
             shutil.rmtree(self.temp_dir)
 
+
 @contextlib.contextmanager
 def temp_directory(delete_when_done=True):
     """
@@ -81,6 +83,7 @@ def temp_directory(delete_when_done=True):
     finally:
         tmp.clean_up()
 
+
 class ModuleIsolation(object):
     """
     Manage changes to sys.modules so that we can roll back imported modules.
@@ -88,6 +91,7 @@ class ModuleIsolation(object):
     Create this object, it will snapshot the currently imported modules. When
     you call `clean_up()`, it will delete any module imported since its creation.
     """
+
     def __init__(self):
         # Save all the names of all the imported modules.
         self.mods = set(sys.modules)
@@ -99,6 +103,7 @@ class ModuleIsolation(object):
         for m in new_mods:
             del sys.modules[m]
 
+
 @contextlib.contextmanager
 def module_isolation():
     mi = ModuleIsolation()
@@ -106,6 +111,7 @@ def module_isolation():
         yield
     finally:
         mi.clean_up()
+
 
 def make_file(filename, text=""):
     """Create a file.
@@ -127,6 +133,7 @@ def make_file(filename, text=""):
 
     return filename
 
+
 def format_exception(exc_info=None, main_file=None, hide_file=False):
     """
     Format an exception, defaulting to the currently-handled exception.
@@ -145,6 +152,7 @@ def format_exception(exc_info=None, main_file=None, hide_file=False):
         cwd = os.getcwd() + os.sep
         lines = [l.replace(cwd, "", 1) for l in lines]
     return "".join(lines)
+
 
 def frame_in_file(frame, filename):
     """

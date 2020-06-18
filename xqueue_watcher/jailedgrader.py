@@ -1,8 +1,6 @@
 """
 An implementation of a grader that uses codejail to sandbox submission execution.
 """
-from __future__ import absolute_import
-from __future__ import unicode_literals
 import codecs
 import os
 import sys
