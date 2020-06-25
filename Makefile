@@ -13,12 +13,22 @@ help:
 DOCKER_IMAGE_NAME=xqueue_watcher
 DOCKER_CONFIG_DIR=$(PWD)/conf.d
 
-docker:
+.PHONY: docker.build
+docker.build: ## Build the latest container image
 	docker build -t xqueue_watcher:latest .
 
-docker.run:
+.PHONY: docker.run
+docker.run:  ## Run the local container image
 	docker run -v $(DOCKER_CONFIG_DIR):/edx/etc/xqueue_watcher \
-		$(DOCKER_IMAGE_NAME):latest
+		$(DOCKER_IMAGE_NAME):latest \
+	;
+
+.PHONY: docker.shell
+docker.shell:  ## Start a container in a bash shell
+	docker run -v $(DOCKER_CONFIG_DIR):/edx/etc/xqueue_watcher \
+		--rm -it --name $(DOCKER_IMAGE_NAME) \
+		$(DOCKER_IMAGE_NAME):latest \
+		bash
 
 upgrade: export CUSTOM_COMPILE_COMMAND=make upgrade
 upgrade: ## update the requirements/*.txt files with the latest packages satisfying requirements/*.in
