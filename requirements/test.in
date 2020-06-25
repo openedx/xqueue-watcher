@@ -5,4 +5,5 @@
 -r production.txt
 
 mock
-nose
+pytest-cov                # pytest extension for code coverage statistics
+

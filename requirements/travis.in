@@ -3,5 +3,5 @@
 
 -r test.txt
 
-coverage
-coveralls
+codecov                   # Code coverage reporting
+tox                       # Virtualenv management for tests

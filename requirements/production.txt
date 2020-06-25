@@ -5,16 +5,15 @@
 #    make upgrade
 #
 -e git+https://github.com/edx/codejail.git@4127fc4bd5775cc72aee8d7f0a70e31405e22439#egg=codejail  # via -r requirements/base.txt
-certifi==2020.4.5.2       # via -r requirements/base.txt, requests
+certifi==2020.6.20        # via -r requirements/base.txt, requests
 chardet==3.0.4            # via -r requirements/base.txt, requests
-dogstatsd-python==0.5.6   # via -r requirements/base.txt
 idna==2.9                 # via -r requirements/base.txt, requests
 importlib-metadata==1.6.1  # via -r requirements/base.txt, path
-newrelic==5.14.0.142      # via -r requirements/base.txt
+newrelic==5.14.1.144      # via -r requirements/base.txt
 path.py==12.4.0           # via -r requirements/base.txt
 path==13.1.0              # via -r requirements/base.txt, path.py
 pyyaml==5.3.1             # via -r requirements/base.txt
-requests==2.23.0          # via -r requirements/base.txt
+requests==2.24.0          # via -r requirements/base.txt
 six==1.15.0               # via -r requirements/base.txt
 urllib3==1.25.9           # via -r requirements/base.txt, requests
 zipp==1.2.0               # via -c requirements/constraints.txt, -r requirements/base.txt, importlib-metadata

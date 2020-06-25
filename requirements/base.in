@@ -2,7 +2,6 @@
 
 -c constraints.txt
 
-dogstatsd-python
 newrelic
 path.py
 requests

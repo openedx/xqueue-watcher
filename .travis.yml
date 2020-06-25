@@ -1,13 +1,37 @@
 language: python
+
 python:
   - 3.5
   - 3.8
+
+matrix:
+  include:
+    - python: 3.5
+      env: TOXENV=py35
+    - python: 3.8
+      env: TOXENV=py38
+
+cache:
+  - pip
+
+before_install:
+  - pip install --upgrade pip
+
 install:
-  - make travis.requirements
+  - pip install -r requirements/travis.txt
+
 script:
-  - make test
-after_success: 
-  - coveralls
-branches:
-    only:
-      - master
+  - tox
+
+after_success:
+  - codecov
+
+# # Set token via "travis encrypt --add deploy.password"; for details, see
+# # https://docs.travis-ci.com/user/deployment/pypi
+# deploy:
+#   provider: pypi
+#   user: "__token__"
+#   distributions: sdist bdist_wheel
+#   on:
+#     tags: true
+#     condition: '$TOXENV = quality'

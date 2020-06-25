@@ -23,13 +23,10 @@ requirements:
 	pip install -qr requirements/production.txt --exists-action w
 
 test.requirements:
-	pip install -q -r requirements/test.txt --exists-action w
-
-travis.requirements:
 	pip install -q -r requirements/travis.txt --exists-action w
 
 test: test.requirements
-	nosetests --with-coverage --cover-package=xqueue_watcher --cover-xml
+	tox
 
 clean:
 	find . -name '*.pyc' -delete
