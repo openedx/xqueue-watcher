@@ -98,7 +98,7 @@ class XQueueClient(object):
                     return (False, "Could not log in")
             else:
                 message = "Received un expected response status code, {0}, calling {1}.".format(
-                    r.status_code,url)
+                    r.status_code, url)
                 log.error(message)
                 return (False, message)
 
@@ -177,7 +177,8 @@ class XQueueClient(object):
                 num_tries += 1
                 time.sleep(self.login_poll_interval)
                 if not self._login():
-                    log.error("Still could not log in to %s (%s:%s) tries: %d",
+                    log.error(
+                        "Still could not log in to %s (%s:%s) tries: %d",
                         self.queue_name,
                         self.username,
                         self.password,

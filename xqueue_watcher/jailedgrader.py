@@ -22,6 +22,7 @@ from six.moves import zip
 
 TIMEOUT = 1
 
+
 def path_to_six():
     """
     Return the full path to six.py
@@ -189,7 +190,9 @@ class JailedGrader(Grader):
                 if actual['submission']['status'] != 'ok':
                     # The grader ran OK, but the student code didn't, so show the student
                     # details of what went wrong.  There is probably an exception to show.
-                    shown_error = actual['submission']['exception'] or _('There was an error thrown while running your solution.')
+                    shown_error = (
+                        actual['submission']['exception'] or _('There was an error thrown while running your solution.')
+                    )
                     results['errors'].append(shown_error)
             else:
                 # The grader didn't run well, we are going to bail.

@@ -5,4 +5,9 @@
 -r production.txt
 
 mock
-nose
+
+pytest
+
+pytest-cov
+
+pep8

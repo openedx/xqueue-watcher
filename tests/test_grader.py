@@ -7,8 +7,6 @@ from six.moves.queue import Queue
 
 from xqueue_watcher import grader
 
-MYDIR = Path(__file__).dirname() / 'fixtures'
-
 
 class MockGrader(grader.Grader):
     def grade(self, grader_path, grader_config, student_response):
