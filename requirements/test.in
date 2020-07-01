@@ -5,4 +5,4 @@
 -r production.txt
 
 mock
-nose
+pytest-cov
