@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='xqueue_watcher',
-    version='0.2',
+    version='0.3',
     description='XQueue Pull Grader',
     packages=[
         'xqueue_watcher',
