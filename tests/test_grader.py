@@ -3,7 +3,7 @@ import mock
 import json
 import sys
 from path import Path
-from six.moves.queue import Queue
+from queue import Queue
 
 from xqueue_watcher import grader
 
