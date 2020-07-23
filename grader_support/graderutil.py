@@ -10,7 +10,7 @@ import tempfile
 import textwrap
 import traceback
 
-from io import StringIO
+import six
 
 # Set this variable to the language code you wish to use
 # Default is 'en'. Dummy translations are served up in 'eo'.
@@ -29,7 +29,7 @@ def captured_stdout():
 
     """
     old_stdout = sys.stdout
-    sys.stdout = stdout = StringIO()
+    sys.stdout = stdout = six.StringIO()
 
     try:
         yield stdout

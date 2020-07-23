@@ -9,7 +9,7 @@ import logging
 from xqueue_watcher import manager
 from tests.test_xqueue_client import MockXQueueServer
 
-from io import StringIO
+from six import StringIO
 
 try:
     import codejail

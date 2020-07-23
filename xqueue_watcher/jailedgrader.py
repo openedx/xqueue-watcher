@@ -9,6 +9,7 @@ import json
 import random
 import gettext
 from path import Path
+import six
 
 import codejail
 
@@ -17,12 +18,25 @@ from grader_support.graderutil import LANGUAGE
 import grader_support
 
 from .grader import Grader
+from six.moves import zip
 
 TIMEOUT = 1
+
+def path_to_six():
+    """
+    Return the full path to six.py
+    """
+    if any(six.__file__.endswith(suffix) for suffix in ('.pyc', '.pyo')):
+        # __file__ points to the compiled bytecode in python 2
+        return Path(six.__file__[:-1])
+    else:
+        # __file__ points to the .py file in python 3
+        return Path(six.__file__)
 
 
 SUPPORT_FILES = [
     Path(grader_support.__file__).dirname(),
+    path_to_six(),
 ]
 
 
@@ -73,7 +87,7 @@ class JailedGrader(Grader):
         return r
 
     def grade(self, grader_path, grader_config, submission):
-        if type(submission) != str:
+        if type(submission) != six.text_type:
             self.log.warning("Submission is NOT unicode")
 
         results = {
@@ -109,7 +123,7 @@ class JailedGrader(Grader):
         # Import the grader, straight from the original file.  (It probably isn't in
         # sys.path, and we may be in a long running gunicorn process, so we don't
         # want to add stuff to sys.path either.)
-        grader_module = imp.load_source("grader_module", str(grader_path))
+        grader_module = imp.load_source("grader_module", six.text_type(grader_path))
         grader = grader_module.grader
 
         # Preprocess for grader-specified errors

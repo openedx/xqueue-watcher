@@ -15,6 +15,8 @@ import json
 import random
 import sys
 
+import six
+
 from . import gradelib  # to set the random seed
 from . import graderutil
 
@@ -29,7 +31,10 @@ trans = gettext.translation(  # pylint: disable=invalid-name
     fallback=True,
     languages=[graderutil.LANGUAGE]
 )
-trans.install(names=None)
+if six.PY2:
+    trans.install(names=None, unicode=True)
+else:
+    trans.install(names=None)
 
 
 def run(grader_name, submission_name, seed=1):
