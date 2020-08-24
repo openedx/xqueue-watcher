@@ -2,7 +2,6 @@
 # http://open-edx-proposals.readthedocs.io/en/latest/oeps/oep-0002.html#specification
 
 nick: xqw
-owner: unknown
 oeps:
     oep-7: false
     oep-18: true
