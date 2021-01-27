@@ -5,34 +5,25 @@
 #    make upgrade
 #
 -e git+https://github.com/edx/codejail.git@4127fc4bd5775cc72aee8d7f0a70e31405e22439#egg=codejail  # via -r requirements/production.txt
-atomicwrites==1.4.0       # via pytest
-attrs==19.3.0             # via pytest
-backports.functools-lru-cache==1.6.1  # via wcwidth
-backports.os==0.1.1       # via -r requirements/production.txt, path.py
-certifi==2020.6.20        # via -r requirements/production.txt, requests
-chardet==3.0.4            # via -r requirements/production.txt, requests
-configparser==4.0.2       # via -r requirements/production.txt, importlib-metadata
-contextlib2==0.6.0.post1  # via -r requirements/production.txt, importlib-metadata, zipp
-coverage==5.1             # via pytest-cov
+attrs==20.3.0             # via pytest
+certifi==2020.12.5        # via -r requirements/production.txt, requests
+chardet==4.0.0            # via -r requirements/production.txt, requests
+coverage==5.4             # via pytest-cov
 dogstatsd-python==0.5.6   # via -r requirements/production.txt
-funcsigs==1.0.2           # via mock, pytest
-future==0.18.2            # via -r requirements/production.txt, backports.os
 idna==2.10                # via -r requirements/production.txt, requests
-importlib-metadata==1.7.0  # via -r requirements/production.txt, path.py, pluggy, pytest
-mock==3.0.5               # via -r requirements/test.in
-more-itertools==5.0.0     # via pytest
-newrelic==5.14.1.144      # via -r requirements/production.txt
-packaging==20.4           # via pytest
+importlib-metadata==3.4.0  # via -r requirements/production.txt, path.py
+iniconfig==1.1.1          # via pytest
+mock==4.0.3               # via -r requirements/test.in
+newrelic==6.0.1.155       # via -r requirements/production.txt
+packaging==20.8           # via pytest
 path.py==11.5.2           # via -c requirements/constraints.txt, -r requirements/production.txt
-pathlib2==2.3.5           # via -r requirements/production.txt, importlib-metadata, pytest
 pluggy==0.13.1            # via pytest
-py==1.9.0                 # via pytest
+py==1.10.0                # via pytest
 pyparsing==2.4.7          # via packaging
-pytest-cov==2.10.0        # via -r requirements/test.in
-pytest==4.6.11            # via pytest-cov
-requests==2.24.0          # via -r requirements/production.txt
-scandir==1.10.0           # via -r requirements/production.txt, pathlib2
-six==1.15.0               # via -r requirements/production.txt, mock, more-itertools, packaging, pathlib2, pytest
-urllib3==1.25.9           # via -r requirements/production.txt, requests
-wcwidth==0.2.5            # via pytest
-zipp==1.2.0               # via -r requirements/production.txt, importlib-metadata
+pytest-cov==2.11.1        # via -r requirements/test.in
+pytest==6.2.2             # via pytest-cov
+requests==2.25.1          # via -r requirements/production.txt
+six==1.15.0               # via -r requirements/production.txt
+toml==0.10.2              # via pytest
+urllib3==1.26.3           # via -r requirements/production.txt, requests
+zipp==3.4.0               # via -r requirements/production.txt, importlib-metadata
