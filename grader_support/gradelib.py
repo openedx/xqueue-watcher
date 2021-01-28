@@ -18,7 +18,7 @@ class EndTest(Exception):
         Exception.__init__(self, message)
 
 
-class Test(object):
+class Test:
     """
     A simple class to wrap a test function and its descriptions.
 
@@ -53,7 +53,7 @@ class Test(object):
         return expected == actual
 
 
-class Grader(object):
+class Grader:
     def __init__(self):
         """
         Create an empty grader.
@@ -239,7 +239,7 @@ def _tokens(code):
     """
     # Protect against pathological inputs: http://bugs.python.org/issue16152
     code = code.rstrip() + "\n"
-    if isinstance(code, six.text_type):
+    if isinstance(code, str):
         code = code.encode('utf8')
     code = "# coding: utf8\n" + code
     toks = tokenize.generate_tokens(six.BytesIO(code).readline)
@@ -481,7 +481,7 @@ def exec_wrapped_code(environment=None, post_process=None):
         environment = {}
     def test_fn(submission_module):
         with capture_stdout() as stdout:
-            six.exec_(submission_module.submission_code, environment)
+            exec(submission_module.submission_code, environment)
         stdout_text = stdout.getvalue()
         if post_process:
             stdout_text = post_process(stdout_text)
@@ -503,7 +503,7 @@ def exec_code_and_inspect_values(environment=None, vars_to_inspect=None, post_pr
         environment = {}
     def test_fn(submission_module):
         with capture_stdout() as stdout:
-            six.exec_(submission_module.submission_code, environment)
+            exec(submission_module.submission_code, environment)
 
         for var in vars_to_inspect:
             print(var)
@@ -530,7 +530,7 @@ def invoke_student_function(fn_name, args, environment=None, output_writer=None)
     """
     output_writer = output_writer or repr
     def doit(submission_module):
-        for name, value in six.iteritems(environment or {}):
+        for name, value in (environment or {}).items():
             setattr(submission_module, name, value)
         fn = getattr(submission_module, fn_name)
         print(output_writer(fn(*args)))
