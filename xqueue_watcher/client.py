@@ -10,7 +10,7 @@ from .settings import MANAGER_CONFIG_DEFAULTS
 log = logging.getLogger(__name__)
 
 
-class XQueueClient(object):
+class XQueueClient:
     def __init__(self,
                  queue_name,
                  xqueue_server='http://localhost:18040',
@@ -20,7 +20,7 @@ class XQueueClient(object):
                  poll_interval=MANAGER_CONFIG_DEFAULTS['POLL_INTERVAL'],
                  login_poll_interval=MANAGER_CONFIG_DEFAULTS['LOGIN_POLL_INTERVAL'],
                  follow_client_redirects=MANAGER_CONFIG_DEFAULTS['FOLLOW_CLIENT_REDIRECTS']):
-        super(XQueueClient, self).__init__()
+        super().__init__()
         self.session = requests.session()
         self.xqueue_server = xqueue_server
         self.queue_name = queue_name
@@ -41,7 +41,7 @@ class XQueueClient(object):
         self.processing = False
 
     def __repr__(self):
-        return '{}({})'.format(self.__class__.__name__, self.queue_name)
+        return f'{self.__class__.__name__}({self.queue_name})'
 
     def _parse_response(self, response, is_reply=True):
         if response.status_code not in [200]:
@@ -97,7 +97,7 @@ class XQueueClient(object):
                 else:
                     return (False, "Could not log in")
             else:
-                message = "Received un expected response status code, {0}, calling {1}.".format(
+                message = "Received un expected response status code, {}, calling {}.".format(
                     r.status_code,url)
                 log.error(message)
                 return (False, message)
@@ -106,7 +106,7 @@ class XQueueClient(object):
         if self.username is None:
             return True
         url = self.xqueue_server + '/xqueue/login/'
-        log.debug("Trying to login to {0} with user: {1} and pass {2}".format(url, self.username, self.password))
+        log.debug(f"Trying to login to {url} with user: {self.username} and pass {self.password}")
         response = self.session.request('post', url, auth=self.http_basic_auth, data={
             'username': self.username,
             'password': self.password,

@@ -1,7 +1,7 @@
 import unittest
 from path import Path
 import json
-from mock import Mock
+from unittest.mock import Mock
 import time
 import sys
 
