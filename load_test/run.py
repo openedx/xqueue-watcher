@@ -29,19 +29,19 @@ WATCHER_CONFIG = {
 
 def start_mock_xqueue(port):
     cmd = 'gunicorn -w 1 -k gevent -b 0.0.0.0:%s mock_xqueue:app' % port
-    print cmd
+    print(cmd)
     proc = subprocess.Popen(cmd.split())
     return proc
 
 def start_queue_watcher(config_file, codejail_config_file):
     cmd = 'python -m xqueue_watcher -f {} -j {}'.format(config_file, codejail_config_file)
-    print cmd
+    print(cmd)
     proc = subprocess.Popen(cmd.split())
     return proc
 
 def get_stats(server_address):
     pprint.pprint(requests.get('%s/stats' % server_address).json())
-    print '\n'
+    print('\n')
 
 def main(args):
     parser = argparse.ArgumentParser()
@@ -77,7 +77,7 @@ def main(args):
 
         watcher_proc = start_queue_watcher(watcher_config.name, codejail_config.name)
         time.sleep(1)
-        print requests.get('%s/start' % args.xqueue_address).json()
+        print(requests.get('%s/start' % args.xqueue_address).json())
     else:
         watcher_proc = None
 
@@ -97,7 +97,7 @@ def main(args):
     if xqueue_proc:
         os.kill(xqueue_proc.pid, 15)
 
-    print '\n\ndone'
+    print('\n\ndone')
     
 if __name__ == '__main__':
     main(sys.argv[1:])

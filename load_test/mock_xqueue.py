@@ -69,7 +69,7 @@ def get_submission():
     response = {
         'return_code': 0,
         'content': flask.json.dumps({
-            'xqueue_header': '{}.{}'.format(counter.next(), idx),
+            'xqueue_header': '{}.{}'.format(next(counter), idx),
             'xqueue_body': flask.json.dumps({
                 'student_response': submission,
                 'grader_payload': flask.json.dumps(payload)
