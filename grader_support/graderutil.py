@@ -37,7 +37,7 @@ def captured_stdout():
         sys.stdout = old_stdout
 
 
-class ChangeDirectory(object):
+class ChangeDirectory:
     def __init__(self, new_dir):
         self.old_dir = os.getcwd()
         os.chdir(new_dir)
@@ -58,7 +58,7 @@ def change_directory(new_dir):
         cd.clean_up()
 
 
-class TempDirectory(object):
+class TempDirectory:
     def __init__(self, delete_when_done=True):
         self.delete_when_done = delete_when_done
         self.temp_dir = tempfile.mkdtemp(prefix="grader-")
@@ -84,7 +84,7 @@ def temp_directory(delete_when_done=True):
         tmp.clean_up()
 
 
-class ModuleIsolation(object):
+class ModuleIsolation:
     """
     Manage changes to sys.modules so that we can roll back imported modules.
 
