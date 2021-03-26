@@ -13,9 +13,10 @@ import time
 from codejail import jail_code
 
 from .settings import get_manager_config_values, MANAGER_CONFIG_DEFAULTS
+from six.moves import range
 
 
-class Manager:
+class Manager(object):
     """
     Manages polling connections to XQueue.
     """

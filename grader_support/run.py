@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 """
 Run a set of tests on a submission, printing the outputs to stdout as a json
 string.
@@ -30,7 +31,10 @@ trans = gettext.translation(  # pylint: disable=invalid-name
     fallback=True,
     languages=[graderutil.LANGUAGE]
 )
-trans.install(names=None)
+if six.PY2:
+    trans.install(names=None, unicode=True)
+else:
+    trans.install(names=None)
 
 
 def run(grader_name, submission_name, seed=1):

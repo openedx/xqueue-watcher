@@ -17,9 +17,9 @@ def format_errors(errors):
     error_string = ''
     error_list = [esc(e) for e in errors or []]
     if error_list:
-        items = '\n'.join(['<li><pre>{}</pre></li>\n'.format(e) for e in error_list])
-        error_string = '<ul>\n{}</ul>\n'.format(items)
-        error_string = '<div class="result-errors">{}</div>'.format(error_string)
+        items = '\n'.join(['<li><pre>{0}</pre></li>\n'.format(e) for e in error_list])
+        error_string = '<ul>\n{0}</ul>\n'.format(items)
+        error_string = '<div class="result-errors">{0}</div>'.format(error_string)
     return error_string
 
 
@@ -28,7 +28,7 @@ def to_dict(result):
     # TODO: replace with mako template
     esc = html.escape
     if result[1]:
-        long_desc = '<p>{}</p>'.format(esc(result[1]))
+        long_desc = '<p>{0}</p>'.format(esc(result[1]))
     else:
         long_desc = ''
     return {'short-description': esc(result[0]),
@@ -39,7 +39,7 @@ def to_dict(result):
             }
 
 
-class Grader:
+class Grader(object):
     results_template = """
 <div class="test">
 <header>Test results</header>
@@ -126,10 +126,10 @@ class Grader:
                 # However, for debugging, still want to see what the problem is
                 statsd.increment('xqueuewatcher.grader_payload_error')
 
-                self.log.debug("error parsing: '{}' -- {}".format(payload, err))
+                self.log.debug("error parsing: '{0}' -- {1}".format(payload, err))
                 raise
 
-            self.log.debug("Processing submission, grader payload: {}".format(payload))
+            self.log.debug("Processing submission, grader payload: {0}".format(payload))
             relative_grader_path = grader_config['grader']
             grader_path = (self.grader_root / relative_grader_path).abspath()
             start = time.time()
