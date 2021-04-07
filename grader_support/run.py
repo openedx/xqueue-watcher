@@ -30,6 +30,7 @@ trans = gettext.translation(  # pylint: disable=invalid-name
     fallback=True,
     languages=[graderutil.LANGUAGE]
 )
+_ = trans.gettext
 trans.install(names=None)
 
 
