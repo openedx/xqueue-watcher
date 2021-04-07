@@ -3,7 +3,8 @@ import inspect
 import random
 import re
 import sys
-import tokenize
+from tokenize import tokenize, COMMENT, STRING
+from io import BytesIO
 
 import six
 # the run library should overwrite this with a particular random seed for the test.
@@ -238,11 +239,7 @@ def _tokens(code):
     A wrapper around tokenize.generate_tokens.
     """
     # Protect against pathological inputs: http://bugs.python.org/issue16152
-    code = code.rstrip() + "\n"
-    if isinstance(code, str):
-        code = code.encode('utf8')
-    code = "# coding: utf8\n" + code
-    toks = tokenize.generate_tokens(six.BytesIO(code).readline)
+    toks = tokenize(BytesIO(code.encode('utf-8')).readline)
     return toks
 
 def _count_tokens(code, string):
@@ -253,7 +250,7 @@ def _count_tokens(code, string):
 
     try:
         for ttyp, ttok, __, __, __ in _tokens(code):
-            if ttyp in (tokenize.COMMENT, tokenize.STRING):
+            if ttyp in (COMMENT, STRING):
                 continue
             if ttok == string:
                 count += 1
@@ -353,7 +350,7 @@ def count_non_comment_lines(at_least=None, at_most=None, exactly=None, error_msg
     def check(code):
         linenums = set()
         for ttyp, ttok, (srow, __), __, __ in _tokens(code):
-            if ttyp in (tokenize.COMMENT, tokenize.STRING):
+            if ttyp in (COMMENT, STRING):
                 # Comments and strings don't count toward line count. If a string
                 # is the only thing on a line, then it's probably a docstring, so
                 # don't count it.
@@ -530,7 +527,7 @@ def invoke_student_function(fn_name, args, environment=None, output_writer=None)
     """
     output_writer = output_writer or repr
     def doit(submission_module):
-        for name, value in environment or {}.items():
+        for name, value in (environment or {}).items():
             setattr(submission_module, name, value)
         fn = getattr(submission_module, fn_name)
         print(output_writer(fn(*args)))

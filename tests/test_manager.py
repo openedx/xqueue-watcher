@@ -67,7 +67,8 @@ class ManagerTests(unittest.TestCase):
                 "VMEM": 1024
             }
         }
-        self.m.enable_codejail(config)
+        codejail_return = self.m.enable_codejail(config)
+        self.assertEqual(codejail_return, config["name"])
         self.assertTrue(codejail.jail_code.is_configured("python"))
         self.m.enable_codejail({
             "name": "other-python",
