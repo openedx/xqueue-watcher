@@ -34,7 +34,7 @@ def start_mock_xqueue(port):
     return proc
 
 def start_queue_watcher(config_file, codejail_config_file):
-    cmd = 'python -m xqueue_watcher -f {} -j {}'.format(config_file, codejail_config_file)
+    cmd = f'python -m xqueue_watcher -f {config_file} -j {codejail_config_file}'
     print(cmd)
     proc = subprocess.Popen(cmd.split())
     return proc

@@ -1,7 +1,7 @@
 import unittest
 from path import Path
 import json
-from mock import Mock
+from unittest.mock import Mock
 import time
 import sys
 
@@ -9,7 +9,7 @@ import logging
 from xqueue_watcher import manager
 from tests.test_xqueue_client import MockXQueueServer
 
-from six import StringIO
+from io import StringIO
 
 try:
     import codejail

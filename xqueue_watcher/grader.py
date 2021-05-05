@@ -17,9 +17,9 @@ def format_errors(errors):
     error_string = ''
     error_list = [esc(e) for e in errors or []]
     if error_list:
-        items = '\n'.join(['<li><pre>{}</pre></li>\n'.format(e) for e in error_list])
-        error_string = '<ul>\n{}</ul>\n'.format(items)
-        error_string = '<div class="result-errors">{}</div>'.format(error_string)
+        items = '\n'.join([f'<li><pre>{e}</pre></li>\n' for e in error_list])
+        error_string = f'<ul>\n{items}</ul>\n'
+        error_string = f'<div class="result-errors">{error_string}</div>'
     return error_string
 
 
@@ -126,10 +126,10 @@ class Grader:
                 # However, for debugging, still want to see what the problem is
                 statsd.increment('xqueuewatcher.grader_payload_error')
 
-                self.log.debug("error parsing: '{}' -- {}".format(payload, err))
+                self.log.debug(f"error parsing: '{payload}' -- {err}")
                 raise
 
-            self.log.debug("Processing submission, grader payload: {}".format(payload))
+            self.log.debug(f"Processing submission, grader payload: {payload}")
             relative_grader_path = grader_config['grader']
             grader_path = (self.grader_root / relative_grader_path).abspath()
             start = time.time()
