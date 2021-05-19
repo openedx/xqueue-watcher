@@ -4,9 +4,8 @@ import random
 import re
 import sys
 from tokenize import tokenize, COMMENT, STRING
-from io import BytesIO
+from io import BytesIO, StringIO
 
-import six
 # the run library should overwrite this with a particular random seed for the test.
 rand = random.Random(1)
 
@@ -463,7 +462,7 @@ def required_class_method(class_name, method_name, error_msg=None):
 @contextlib.contextmanager
 def capture_stdout():
     old_stdout = sys.stdout
-    sys.stdout = stdout = six.StringIO()
+    sys.stdout = stdout = StringIO()
     yield stdout
     sys.stdout = old_stdout
 

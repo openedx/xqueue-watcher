@@ -14,8 +14,6 @@ import json
 import random
 import sys
 
-import six
-
 from . import gradelib  # to set the random seed
 from . import graderutil
 

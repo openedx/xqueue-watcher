@@ -41,7 +41,7 @@ class XQueueClient:
         self.processing = False
 
     def __repr__(self):
-        return '{}({})'.format(self.__class__.__name__, self.queue_name)
+        return f'{self.__class__.__name__}({self.queue_name})'
 
     def _parse_response(self, response, is_reply=True):
         if response.status_code not in [200]:
@@ -106,7 +106,7 @@ class XQueueClient:
         if self.username is None:
             return True
         url = self.xqueue_server + '/xqueue/login/'
-        log.debug("Trying to login to {} with user: {} and pass {}".format(url, self.username, self.password))
+        log.debug(f"Trying to login to {url} with user: {self.username} and pass {self.password}")
         response = self.session.request('post', url, auth=self.http_basic_auth, data={
             'username': self.username,
             'password': self.password,
