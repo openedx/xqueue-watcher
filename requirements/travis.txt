@@ -5,24 +5,81 @@
 #    make upgrade
 #
 -e git+https://github.com/edx/codejail.git@4127fc4bd5775cc72aee8d7f0a70e31405e22439#egg=codejail  # via -r requirements/test.txt
-attrs==20.3.0             # via -r requirements/test.txt, pytest
-certifi==2020.12.5        # via -r requirements/test.txt, requests
-chardet==4.0.0            # via -r requirements/test.txt, requests
-coverage==5.5             # via -r requirements/test.txt, -r requirements/travis.in, pytest-cov
-dogstatsd-python==0.5.6   # via -r requirements/test.txt
-idna==2.10                # via -r requirements/test.txt, requests
-iniconfig==1.1.1          # via -r requirements/test.txt, pytest
-mock==4.0.3               # via -r requirements/test.txt
-newrelic==6.2.0.156       # via -r requirements/test.txt
-packaging==20.9           # via -r requirements/test.txt, pytest
-path.py==12.5.0           # via -r requirements/test.txt
-path==15.1.2              # via -r requirements/test.txt, path.py
-pluggy==0.13.1            # via -r requirements/test.txt, pytest
-py==1.10.0                # via -r requirements/test.txt, pytest
-pyparsing==2.4.7          # via -r requirements/test.txt, packaging
-pytest-cov==2.11.1        # via -r requirements/test.txt
-pytest==6.2.4             # via -r requirements/test.txt, pytest-cov
-requests==2.25.1          # via -r requirements/test.txt
-six==1.15.0               # via -r requirements/test.txt
-toml==0.10.2              # via -r requirements/test.txt, pytest
-urllib3==1.26.4           # via -r requirements/test.txt, requests
+    # via -r test.txt
+attrs==20.3.0
+    # via
+    #   -r test.txt
+    #   pytest
+certifi==2020.12.5
+    # via
+    #   -r test.txt
+    #   requests
+chardet==4.0.0
+    # via
+    #   -r test.txt
+    #   requests
+coverage==5.5
+    # via
+    #   -r test.txt
+    #   -r travis.in
+    #   pytest-cov
+dogstatsd-python==0.5.6
+    # via -r test.txt
+idna==2.10
+    # via
+    #   -r test.txt
+    #   requests
+importlib-metadata==4.4.0
+    # via
+    #   -r test.txt
+    #   path.py
+iniconfig==1.1.1
+    # via
+    #   -r test.txt
+    #   pytest
+mock==4.0.3
+    # via -r test.txt
+newrelic==6.2.0.156
+    # via -r test.txt
+packaging==20.9
+    # via
+    #   -r test.txt
+    #   pytest
+path.py==11.5.2
+    # via
+    #   -c constraints.txt
+    #   -r test.txt
+pluggy==0.13.1
+    # via
+    #   -r test.txt
+    #   pytest
+py==1.10.0
+    # via
+    #   -r test.txt
+    #   pytest
+pyparsing==2.4.7
+    # via
+    #   -r test.txt
+    #   packaging
+pytest-cov==2.11.1
+    # via -r test.txt
+pytest==6.2.4
+    # via
+    #   -r test.txt
+    #   pytest-cov
+requests==2.25.1
+    # via -r test.txt
+six==1.15.0
+    # via -r test.txt
+toml==0.10.2
+    # via
+    #   -r test.txt
+    #   pytest
+urllib3==1.26.5
+    # via
+    #   -r test.txt
+    #   requests
+zipp==3.4.1
+    # via
+    #   -r test.txt
+    #   importlib-metadata

@@ -5,24 +5,62 @@
 #    make upgrade
 #
 -e git+https://github.com/edx/codejail.git@4127fc4bd5775cc72aee8d7f0a70e31405e22439#egg=codejail  # via -r requirements/production.txt
-attrs==20.3.0             # via pytest
-certifi==2020.12.5        # via -r requirements/production.txt, requests
-chardet==4.0.0            # via -r requirements/production.txt, requests
-coverage==5.5             # via pytest-cov
-dogstatsd-python==0.5.6   # via -r requirements/production.txt
-idna==2.10                # via -r requirements/production.txt, requests
-iniconfig==1.1.1          # via pytest
-mock==4.0.3               # via -r requirements/test.in
-newrelic==6.2.0.156       # via -r requirements/production.txt
-packaging==20.9           # via pytest
-path.py==12.5.0           # via -r requirements/production.txt
-path==15.1.2              # via -r requirements/production.txt, path.py
-pluggy==0.13.1            # via pytest
-py==1.10.0                # via pytest
-pyparsing==2.4.7          # via packaging
-pytest-cov==2.11.1        # via -r requirements/test.in
-pytest==6.2.4             # via pytest-cov
-requests==2.25.1          # via -r requirements/production.txt
-six==1.15.0               # via -r requirements/production.txt
-toml==0.10.2              # via pytest
-urllib3==1.26.4           # via -r requirements/production.txt, requests
+    # via -r production.txt
+attrs==20.3.0
+    # via pytest
+certifi==2020.12.5
+    # via
+    #   -r production.txt
+    #   requests
+chardet==4.0.0
+    # via
+    #   -r production.txt
+    #   requests
+coverage==5.5
+    # via pytest-cov
+dogstatsd-python==0.5.6
+    # via -r production.txt
+idna==2.10
+    # via
+    #   -r production.txt
+    #   requests
+importlib-metadata==4.4.0
+    # via
+    #   -r production.txt
+    #   path.py
+iniconfig==1.1.1
+    # via pytest
+mock==4.0.3
+    # via -r test.in
+newrelic==6.2.0.156
+    # via -r production.txt
+packaging==20.9
+    # via pytest
+path.py==11.5.2
+    # via
+    #   -c constraints.txt
+    #   -r production.txt
+pluggy==0.13.1
+    # via pytest
+py==1.10.0
+    # via pytest
+pyparsing==2.4.7
+    # via packaging
+pytest-cov==2.11.1
+    # via -r test.in
+pytest==6.2.4
+    # via pytest-cov
+requests==2.25.1
+    # via -r production.txt
+six==1.15.0
+    # via -r production.txt
+toml==0.10.2
+    # via pytest
+urllib3==1.26.5
+    # via
+    #   -r production.txt
+    #   requests
+zipp==3.4.1
+    # via
+    #   -r production.txt
+    #   importlib-metadata
