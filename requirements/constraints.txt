@@ -10,6 +10,3 @@
 
 # After this version drops support for python 2.7
 path.py<=11.5.2
-
-# See https://openedx.atlassian.net/browse/BOM-2247
-pip-tools<6.0
