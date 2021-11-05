@@ -1,0 +1,35 @@
+name: Python CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - '**'
+
+jobs:
+  run_tests:
+    name: Tests
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - ubuntu-20.04
+        python-version:
+          - 3.8
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: setup python
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install requirements and Run Tests
+      run: make test
+
+    - name: Run Coverage
+      uses: codecov/codecov-action@v2
+      with:
+        fail_ci_if_error: true
