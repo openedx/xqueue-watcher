@@ -7,6 +7,3 @@
 # link to other information that will help people in the future to remove the
 # pin when possible.  Writing an issue against the offending project and
 # linking to it here is good.
-
-# After this version drops support for python 2.7
-path.py<=11.5.2

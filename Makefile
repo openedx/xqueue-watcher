@@ -17,7 +17,7 @@ upgrade: ## update the requirements/*.txt files with the latest packages satisfy
 	pip-compile --upgrade -o requirements/base.txt requirements/base.in
 	pip-compile --upgrade -o requirements/production.txt requirements/production.in
 	pip-compile --upgrade -o requirements/test.txt requirements/test.in
-	pip-compile --upgrade -o requirements/travis.txt requirements/travis.in
+	pip-compile --upgrade -o requirements/ci.txt requirements/ci.in
 
 requirements:
 	pip install -qr requirements/production.txt --exists-action w
@@ -25,11 +25,11 @@ requirements:
 test.requirements:
 	pip install -q -r requirements/test.txt --exists-action w
 
-travis.requirements:
-	pip install -q -r requirements/travis.txt --exists-action w
+ci.requirements:
+	pip install -q -r requirements/ci.txt --exists-action w
 
 test: test.requirements
-	pytest --cov=xqueue_watcher --cov-report=xml
+	pytest --cov=xqueue_watcher --cov-report=xml tests
 
 clean:
 	find . -name '*.pyc' -delete
