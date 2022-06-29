@@ -14,7 +14,7 @@ certifi==2022.6.15
     # via
     #   -r requirements/test.txt
     #   requests
-charset-normalizer==2.0.12
+charset-normalizer==2.1.0
     # via
     #   -r requirements/test.txt
     #   requests
@@ -35,7 +35,7 @@ iniconfig==1.1.1
     #   pytest
 mock==4.0.3
     # via -r requirements/test.txt
-newrelic==7.12.0.176
+newrelic==7.14.0.177
     # via -r requirements/test.txt
 packaging==21.3
     # via
@@ -65,7 +65,7 @@ pytest==7.1.2
     #   pytest-cov
 pytest-cov==3.0.0
     # via -r requirements/test.txt
-requests==2.28.0
+requests==2.28.1
     # via -r requirements/test.txt
 six==1.16.0
     # via -r requirements/test.txt
