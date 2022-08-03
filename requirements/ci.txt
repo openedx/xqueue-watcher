@@ -6,7 +6,7 @@
 #
 -e git+https://github.com/edx/codejail.git@4127fc4bd5775cc72aee8d7f0a70e31405e22439#egg=codejail
     # via -r requirements/test.txt
-attrs==21.4.0
+attrs==22.1.0
     # via
     #   -r requirements/test.txt
     #   pytest
@@ -35,7 +35,7 @@ iniconfig==1.1.1
     #   pytest
 mock==4.0.3
     # via -r requirements/test.txt
-newrelic==7.14.0.177
+newrelic==7.16.0.178
     # via -r requirements/test.txt
 packaging==21.3
     # via
@@ -74,7 +74,7 @@ tomli==2.0.1
     #   -r requirements/test.txt
     #   coverage
     #   pytest
-urllib3==1.26.10
+urllib3==1.26.11
     # via
     #   -r requirements/test.txt
     #   requests
