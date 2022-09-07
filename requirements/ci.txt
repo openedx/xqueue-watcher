@@ -4,7 +4,7 @@
 #
 #    make upgrade
 #
--e git+https://github.com/edx/codejail.git@4127fc4bd5775cc72aee8d7f0a70e31405e22439#egg=codejail
+-e git+https://github.com/openedx/codejail.git@4127fc4bd5775cc72aee8d7f0a70e31405e22439#egg=codejail
     # via -r requirements/test.txt
 attrs==22.1.0
     # via
