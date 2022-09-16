@@ -1,7 +1,7 @@
 xqueue_watcher
 ==========
 
-This is an implementation of a polling [XQueue](https://github.com/edx/xqueue) client and grader.
+This is an implementation of a polling [XQueue](https://github.com/openedx/xqueue) client and grader.
 
 Overview
 ========
@@ -111,7 +111,7 @@ Note that `grader_path` is constructed by appending the relative path to the gra
 `xqueue_watcher` provides a few utilities for grading python submissions, including JailedGrader for running python code in a safe environment and grading support utilities.
 
 ### JailedGrader
-To sandbox python, use [CodeJail](https://github.com/edx/codejail). In your handler configuration, add:
+To sandbox python, use [CodeJail](https://github.com/openedx/codejail). In your handler configuration, add:
 ```json
     "HANDLER": "xqueue_watcher.jailedgrader.JailedGrader",
     "CODEJAIL": {
