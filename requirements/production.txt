@@ -32,7 +32,7 @@ requests==2.28.1
     # via -r requirements/base.txt
 six==1.16.0
     # via -r requirements/base.txt
-urllib3==1.26.12
+urllib3==1.26.13
     # via
     #   -r requirements/base.txt
     #   requests

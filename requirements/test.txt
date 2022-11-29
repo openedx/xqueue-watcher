@@ -20,7 +20,7 @@ coverage[toml]==6.5.0
     # via pytest-cov
 dogstatsd-python==0.5.6
     # via -r requirements/production.txt
-exceptiongroup==1.0.0
+exceptiongroup==1.0.4
     # via pytest
 idna==3.4
     # via
@@ -56,7 +56,7 @@ tomli==2.0.1
     # via
     #   coverage
     #   pytest
-urllib3==1.26.12
+urllib3==1.26.13
     # via
     #   -r requirements/production.txt
     #   requests
