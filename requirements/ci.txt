@@ -5,76 +5,67 @@
 #    make upgrade
 #
 -e git+https://github.com/openedx/codejail.git@4127fc4bd5775cc72aee8d7f0a70e31405e22439#egg=codejail
-    # via -r requirements/test.txt
+    # via -r test.txt
 attrs==22.1.0
     # via
-    #   -r requirements/test.txt
+    #   -r test.txt
     #   pytest
-certifi==2022.9.24
+certifi==2022.12.7
     # via
-    #   -r requirements/test.txt
+    #   -r test.txt
     #   requests
 charset-normalizer==2.1.1
     # via
-    #   -r requirements/test.txt
+    #   -r test.txt
     #   requests
 coverage[toml]==6.5.0
     # via
-    #   -r requirements/ci.in
-    #   -r requirements/test.txt
+    #   -r ci.in
+    #   -r test.txt
     #   pytest-cov
 dogstatsd-python==0.5.6
-    # via -r requirements/test.txt
-exceptiongroup==1.0.4
-    # via
-    #   -r requirements/test.txt
-    #   pytest
+    # via -r test.txt
 idna==3.4
     # via
-    #   -r requirements/test.txt
+    #   -r test.txt
     #   requests
 iniconfig==1.1.1
     # via
-    #   -r requirements/test.txt
+    #   -r test.txt
     #   pytest
 mock==4.0.3
-    # via -r requirements/test.txt
+    # via -r test.txt
 newrelic==8.4.0
-    # via -r requirements/test.txt
+    # via -r test.txt
 packaging==21.3
     # via
-    #   -r requirements/test.txt
+    #   -r test.txt
     #   pytest
 path==16.6.0
     # via
-    #   -r requirements/test.txt
+    #   -r test.txt
     #   path-py
 path-py==12.5.0
-    # via -r requirements/test.txt
+    # via -r test.txt
 pluggy==1.0.0
     # via
-    #   -r requirements/test.txt
+    #   -r test.txt
     #   pytest
 pyparsing==3.0.9
     # via
-    #   -r requirements/test.txt
+    #   -r test.txt
     #   packaging
 pytest==7.2.0
     # via
-    #   -r requirements/test.txt
+    #   -r test.txt
     #   pytest-cov
 pytest-cov==4.0.0
-    # via -r requirements/test.txt
+    # via -r test.txt
 requests==2.28.1
-    # via -r requirements/test.txt
+    # via -r test.txt
 six==1.16.0
-    # via -r requirements/test.txt
-tomli==2.0.1
-    # via
-    #   -r requirements/test.txt
-    #   coverage
-    #   pytest
+    # via -r test.txt
 urllib3==1.26.13
     # via
-    #   -r requirements/test.txt
+    #   -r test.txt
     #   requests
