@@ -8,7 +8,7 @@
     # via -r requirements/production.txt
 attrs==22.1.0
     # via pytest
-certifi==2022.9.24
+certifi==2022.12.7
     # via
     #   -r requirements/production.txt
     #   requests
@@ -30,9 +30,9 @@ iniconfig==1.1.1
     # via pytest
 mock==4.0.3
     # via -r requirements/test.in
-newrelic==8.4.0
+newrelic==8.5.0
     # via -r requirements/production.txt
-packaging==21.3
+packaging==22.0
     # via pytest
 path==16.6.0
     # via
@@ -42,8 +42,6 @@ path-py==12.5.0
     # via -r requirements/production.txt
 pluggy==1.0.0
     # via pytest
-pyparsing==3.0.9
-    # via packaging
 pytest==7.2.0
     # via pytest-cov
 pytest-cov==4.0.0

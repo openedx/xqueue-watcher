@@ -10,7 +10,7 @@ attrs==22.1.0
     # via
     #   -r requirements/test.txt
     #   pytest
-certifi==2022.9.24
+certifi==2022.12.7
     # via
     #   -r requirements/test.txt
     #   requests
@@ -39,9 +39,9 @@ iniconfig==1.1.1
     #   pytest
 mock==4.0.3
     # via -r requirements/test.txt
-newrelic==8.4.0
+newrelic==8.5.0
     # via -r requirements/test.txt
-packaging==21.3
+packaging==22.0
     # via
     #   -r requirements/test.txt
     #   pytest
@@ -55,10 +55,6 @@ pluggy==1.0.0
     # via
     #   -r requirements/test.txt
     #   pytest
-pyparsing==3.0.9
-    # via
-    #   -r requirements/test.txt
-    #   packaging
 pytest==7.2.0
     # via
     #   -r requirements/test.txt
