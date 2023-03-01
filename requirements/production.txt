@@ -20,7 +20,7 @@ idna==3.4
     # via
     #   -r requirements/base.txt
     #   requests
-newrelic==8.6.0
+newrelic==8.7.0
     # via -r requirements/base.txt
 path==16.6.0
     # via
