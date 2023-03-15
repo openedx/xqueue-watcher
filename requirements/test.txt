@@ -12,15 +12,15 @@ certifi==2022.12.7
     # via
     #   -r requirements/production.txt
     #   requests
-charset-normalizer==3.0.1
+charset-normalizer==3.1.0
     # via
     #   -r requirements/production.txt
     #   requests
-coverage[toml]==7.1.0
+coverage[toml]==7.2.1
     # via pytest-cov
 dogstatsd-python==0.5.6
     # via -r requirements/production.txt
-exceptiongroup==1.1.0
+exceptiongroup==1.1.1
     # via pytest
 idna==3.4
     # via
@@ -30,7 +30,7 @@ iniconfig==2.0.0
     # via pytest
 mock==5.0.1
     # via -r requirements/test.in
-newrelic==8.6.0
+newrelic==8.7.0
     # via -r requirements/production.txt
 packaging==23.0
     # via pytest
@@ -42,7 +42,7 @@ path-py==12.5.0
     # via -r requirements/production.txt
 pluggy==1.0.0
     # via pytest
-pytest==7.2.1
+pytest==7.2.2
     # via pytest-cov
 pytest-cov==4.0.0
     # via -r requirements/test.in
@@ -54,7 +54,7 @@ tomli==2.0.1
     # via
     #   coverage
     #   pytest
-urllib3==1.26.14
+urllib3==1.26.15
     # via
     #   -r requirements/production.txt
     #   requests
