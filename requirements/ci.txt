@@ -18,7 +18,7 @@ charset-normalizer==3.1.0
     # via
     #   -r requirements/test.txt
     #   requests
-coverage[toml]==7.2.1
+coverage[toml]==7.2.2
     # via
     #   -r requirements/ci.in
     #   -r requirements/test.txt
@@ -39,7 +39,7 @@ iniconfig==2.0.0
     #   pytest
 mock==5.0.1
     # via -r requirements/test.txt
-newrelic==8.7.0
+newrelic==8.7.1
     # via -r requirements/test.txt
 packaging==23.0
     # via
