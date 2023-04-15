@@ -6,10 +6,6 @@
 #
 -e git+https://github.com/openedx/codejail.git@4127fc4bd5775cc72aee8d7f0a70e31405e22439#egg=codejail
     # via -r requirements/test.txt
-attrs==22.2.0
-    # via
-    #   -r requirements/test.txt
-    #   pytest
 certifi==2022.12.7
     # via
     #   -r requirements/test.txt
@@ -18,7 +14,7 @@ charset-normalizer==3.1.0
     # via
     #   -r requirements/test.txt
     #   requests
-coverage[toml]==7.2.1
+coverage[toml]==7.2.3
     # via
     #   -r requirements/ci.in
     #   -r requirements/test.txt
@@ -39,9 +35,9 @@ iniconfig==2.0.0
     #   pytest
 mock==5.0.1
     # via -r requirements/test.txt
-newrelic==8.7.0
+newrelic==8.8.0
     # via -r requirements/test.txt
-packaging==23.0
+packaging==23.1
     # via
     #   -r requirements/test.txt
     #   pytest
@@ -55,7 +51,7 @@ pluggy==1.0.0
     # via
     #   -r requirements/test.txt
     #   pytest
-pytest==7.2.2
+pytest==7.3.1
     # via
     #   -r requirements/test.txt
     #   pytest-cov
