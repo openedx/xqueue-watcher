@@ -4,7 +4,8 @@ An implementation of a grader that uses codejail to sandbox submission execution
 import codecs
 import os
 import sys
-import imp
+import importlib.util
+import importlib.machinery
 import json
 import random
 import gettext
@@ -20,6 +21,19 @@ import grader_support
 from .grader import Grader
 
 TIMEOUT = 1
+
+
+# Python 3.12: `imp` module removed: docs.python.org/3/whatsnew/3.12.html#imp
+def load_source(modname, filename):
+    loader = importlib.machinery.SourceFileLoader(modname, filename)
+    spec = importlib.util.spec_from_file_location(modname, filename, loader=loader)
+    module = importlib.util.module_from_spec(spec)
+    # The module is always executed and not cached in sys.modules.
+    # Uncomment the following line to cache the module.
+    # sys.modules[module.__name__] = module
+    loader.exec_module(module)
+    return module
+
 
 def path_to_six():
     """
@@ -122,7 +136,7 @@ class JailedGrader(Grader):
         # Import the grader, straight from the original file.  (It probably isn't in
         # sys.path, and we may be in a long running gunicorn process, so we don't
         # want to add stuff to sys.path either.)
-        grader_module = imp.load_source("grader_module", str(grader_path))
+        grader_module = load_source("grader_module", str(grader_path))
         grader = grader_module.grader
 
         # Preprocess for grader-specified errors
