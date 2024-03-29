@@ -2,7 +2,6 @@
 Implementation of a grader compatible with XServer
 """
 import html
-import imp
 import sys
 import time
 import json
