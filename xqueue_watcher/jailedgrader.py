@@ -4,7 +4,7 @@ An implementation of a grader that uses codejail to sandbox submission execution
 import codecs
 import os
 import sys
-import imp
+import importlib
 import json
 import random
 import gettext
@@ -122,7 +122,8 @@ class JailedGrader(Grader):
         # Import the grader, straight from the original file.  (It probably isn't in
         # sys.path, and we may be in a long running gunicorn process, so we don't
         # want to add stuff to sys.path either.)
-        grader_module = imp.load_source("grader_module", str(grader_path))
+        sf_loader = importlib.machinery.SourceFileLoader("grader_module", str(grader_path))
+        grader_module = sf_loader.load_module()
         grader = grader_module.grader
 
         # Preprocess for grader-specified errors
