@@ -1,3 +1,4 @@
+from re import A
 import unittest
 from path import Path
 import json
@@ -40,6 +41,17 @@ class ManagerTests(unittest.TestCase):
                         'HANDLER': 'urllib.urlencode'
                     }
                 ]
+            },
+            'test3': {
+                'AUTH': ('test', 'test'),
+                'CONNECTIONS': 2,
+                'NAME_OVERRIDE': "test4",
+                'SERVER': 'http://test4',
+                'HANDLERS': [
+                    {
+                        'HANDLER': 'tests.test_grader.MockGrader',
+                    }
+                ]
             }
         }
 
@@ -51,10 +63,13 @@ class ManagerTests(unittest.TestCase):
 
     def test_configuration(self):
         self.m.configure(self.config)
-        self.assertEqual(len(self.m.clients), 3)
+        self.assertEqual(len(self.m.clients), 5)
         for c in self.m.clients:
+            self.assertNotEqual(c.queue_name, "test3")
             if c.queue_name == 'test2':
                 self.assertEqual(c.xqueue_server, 'http://test2')
+            if c.queue_name == "test4":
+                self.assertEqual(c.xqueue_server, "http://test4")
 
     @unittest.skipUnless(HAS_CODEJAIL, "Codejail not installed")
     def test_codejail_config(self):
