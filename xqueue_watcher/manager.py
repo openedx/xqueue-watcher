@@ -32,7 +32,7 @@ class Manager:
 
         klass = getattr(client, watcher_config.get('CLASS', 'XQueueClientThread'))
         watcher = klass(
-            queue_name,
+            queue_name=watcher_config.get('NAME_OVERRIDE', None) or queue_name,
             xqueue_server=watcher_config.get('SERVER', 'http://localhost:18040'),
             xqueue_auth=watcher_config.get('AUTH', (None, None)),
             http_basic_auth=self.manager_config['HTTP_BASIC_AUTH'],
