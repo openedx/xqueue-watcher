@@ -6,11 +6,11 @@
 #
 -e git+https://github.com/openedx/codejail.git@4127fc4bd5775cc72aee8d7f0a70e31405e22439#egg=codejail
     # via -r requirements/base.txt
-certifi==2025.1.31
+certifi==2025.4.26
     # via
     #   -r requirements/base.txt
     #   requests
-charset-normalizer==3.4.1
+charset-normalizer==3.4.2
     # via
     #   -r requirements/base.txt
     #   requests
@@ -20,8 +20,6 @@ idna==3.10
     # via
     #   -r requirements/base.txt
     #   requests
-newrelic==10.9.0
-    # via -r requirements/base.txt
 path==17.1.0
     # via
     #   -r requirements/base.txt
