@@ -1,0 +1,19 @@
+FROM python:3.11-slim AS grader-base
+
+# Create a non-root user for running student code
+RUN useradd -m -u 1000 --shell /bin/false grader
+
+WORKDIR /grader
+
+# Copy the grader_support framework into the image
+COPY grader_support/ ./grader_support/
+
+# /tmp is always writable (tmpfs) even with read_only_root_filesystem=true.
+# Student submission files are written there by the entrypoint.
+VOLUME ["/tmp"]
+
+USER grader
+
+# The entrypoint reads SUBMISSION_CODE from the environment, writes it to /tmp,
+# then invokes grader_support.run and prints JSON results to stdout.
+ENTRYPOINT ["python", "-m", "grader_support.entrypoint"]

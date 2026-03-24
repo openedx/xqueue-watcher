@@ -5,14 +5,19 @@ import inspect
 import json
 import logging
 import logging.config
-from path import Path
+from pathlib import Path
 import signal
 import sys
 import time
 
-from codejail import jail_code
+try:
+    from codejail import jail_code as _codejail_jail_code
+except ImportError:
+    _codejail_jail_code = None
 
-from .settings import get_manager_config_values, MANAGER_CONFIG_DEFAULTS
+from .settings import get_manager_config_values, get_xqueue_servers, MANAGER_CONFIG_DEFAULTS
+from .metrics import configure_metrics
+from .env_settings import configure_logging
 
 
 class Manager:
@@ -23,18 +28,45 @@ class Manager:
         self.clients = []
         self.log = logging
         self.manager_config = MANAGER_CONFIG_DEFAULTS.copy()
+        self.xqueue_servers = {}
 
     def client_from_config(self, queue_name, watcher_config):
         """
         Return an XQueueClient from the configuration object.
+
+        Queue configs may specify a ``SERVER_REF`` key whose value is the name
+        of a server defined in ``xqueue_servers.json``.  When present, the
+        referenced server's ``SERVER`` and ``AUTH`` values are used and the
+        queue config must not also supply ``SERVER`` or ``AUTH`` directly.
         """
         from . import client
 
+        server_ref = watcher_config.get('SERVER_REF')
+        if server_ref is not None:
+            if 'SERVER' in watcher_config or 'AUTH' in watcher_config:
+                raise ValueError(
+                    f"Queue '{queue_name}': 'SERVER_REF' cannot be used together "
+                    "with 'SERVER' or 'AUTH'. Remove 'SERVER' and 'AUTH' when "
+                    "using a named server reference."
+                )
+            if server_ref not in self.xqueue_servers:
+                known = list(self.xqueue_servers)
+                raise ValueError(
+                    f"Queue '{queue_name}': unknown SERVER_REF '{server_ref}'. "
+                    f"Known server names: {known}"
+                )
+            server_config = self.xqueue_servers[server_ref]
+            xqueue_server = server_config['SERVER']
+            xqueue_auth = server_config['AUTH']
+        else:
+            xqueue_server = watcher_config.get('SERVER', 'http://localhost:18040')
+            xqueue_auth = watcher_config.get('AUTH', (None, None))
+
         klass = getattr(client, watcher_config.get('CLASS', 'XQueueClientThread'))
         watcher = klass(
-            queue_name,
-            xqueue_server=watcher_config.get('SERVER', 'http://localhost:18040'),
-            xqueue_auth=watcher_config.get('AUTH', (None, None)),
+            queue_name=watcher_config.get('NAME_OVERRIDE', None) or queue_name,
+            xqueue_server=xqueue_server,
+            xqueue_auth=xqueue_auth,
             http_basic_auth=self.manager_config['HTTP_BASIC_AUTH'],
             requests_timeout=self.manager_config['REQUESTS_TIMEOUT'],
             poll_interval=self.manager_config['POLL_INTERVAL'],
@@ -87,20 +119,25 @@ class Manager:
             with open(log_config) as config:
                 logging.config.dictConfig(json.load(config))
         else:
-            logging.basicConfig(level="DEBUG")
+            configure_logging()
         self.log = logging.getLogger('xqueue_watcher.manager')
+
+        configure_metrics()
 
         app_config_path = directory / 'xqwatcher.json'
         self.manager_config = get_manager_config_values(app_config_path)
 
+        servers_config_path = directory / 'xqueue_servers.json'
+        self.xqueue_servers = get_xqueue_servers(servers_config_path)
+
         confd = directory / 'conf.d'
-        for watcher in confd.files('*.json'):
+        for watcher in sorted(confd.glob('*.json')):
             with open(watcher) as queue_config:
                 self.configure(json.load(queue_config))
 
     def enable_codejail(self, codejail_config):
         """
-        Enable codejail for the process.
+        Enable codejail for the process (legacy AppArmor-based sandbox).
         codejail_config is a dict like this:
         {
             "name": "python",
@@ -114,13 +151,18 @@ class Manager:
         limits are optional
         user defaults to the current user
         """
+        if _codejail_jail_code is None:
+            raise RuntimeError(
+                "codejail is not installed. Cannot configure AppArmor-based sandboxing. "
+                "Use ContainerGrader for containerized deployments."
+            )
         name = codejail_config["name"]
         bin_path = codejail_config['bin_path']
         user = codejail_config.get('user', getpass.getuser())
-        jail_code.configure(name, bin_path, user=user)
+        _codejail_jail_code.configure(name, bin_path, user=user)
         limits = codejail_config.get("limits", {})
         for limit_name, value in limits.items():
-            jail_code.set_limit(limit_name, value)
+            _codejail_jail_code.set_limit(limit_name, value)
         self.log.info("configured codejail -> %s %s %s", name, bin_path, user)
         return name
 

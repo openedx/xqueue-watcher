@@ -1,0 +1,25 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: xqueue-watcher
+
+resources:
+  - serviceaccount.yaml
+  - rbac.yaml
+  - configmap.yaml
+  - deployment.yaml
+  - networkpolicy.yaml
+
+# Override the image tag for a specific environment by adding a patch in an
+# overlay directory. Example overlay (deploy/kubernetes/overlays/production/):
+#
+#   kustomization.yaml:
+#     resources:
+#       - ../../
+#     images:
+#       - name: registry.example.com/xqueue-watcher
+#         newTag: "v1.2.3"
+#
+images:
+  - name: registry.example.com/xqueue-watcher
+    newTag: latest

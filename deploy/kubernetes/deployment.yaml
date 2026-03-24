@@ -1,0 +1,93 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: xqueue-watcher
+  namespace: xqueue-watcher
+  labels:
+    app.kubernetes.io/name: xqueue-watcher
+    app.kubernetes.io/component: watcher
+spec:
+  # Scale horizontally by increasing replicas. Each replica polls xqueue
+  # independently — no coordination is required between replicas.
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: xqueue-watcher
+      app.kubernetes.io/component: watcher
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: xqueue-watcher
+        app.kubernetes.io/component: watcher
+    spec:
+      serviceAccountName: xqueue-watcher
+
+      # Spread replicas across nodes for availability
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: xqueue-watcher
+
+      containers:
+        - name: xqueue-watcher
+          image: registry.example.com/xqueue-watcher:latest
+          imagePullPolicy: Always
+          command: ["xqueue-watcher", "-d", "/etc/xqueue-watcher"]
+
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+
+          volumeMounts:
+            # Main watcher config (xqwatcher.json + logging.json)
+            - name: config
+              mountPath: /etc/xqueue-watcher
+              readOnly: true
+            # Queue-specific conf.d configs (one JSON file per course queue)
+            - name: queue-configs
+              mountPath: /etc/xqueue-watcher/conf.d
+              readOnly: true
+
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1000
+            capabilities:
+              drop: ["ALL"]
+
+          # Basic liveness: the process exits on fatal errors, so k8s will restart it.
+          # A more sophisticated probe could hit a /healthz endpoint if one is added.
+          livenessProbe:
+            exec:
+              command: ["python", "-c", "import xqueue_watcher"]
+            initialDelaySeconds: 10
+            periodSeconds: 30
+            failureThreshold: 3
+
+      volumes:
+        - name: config
+          configMap:
+            name: xqueue-watcher-config
+            items:
+              - key: xqwatcher.json
+                path: xqwatcher.json
+              - key: logging.json
+                path: logging.json
+        - name: queue-configs
+          # Queue-specific configs live in a separate ConfigMap so course teams
+          # can update them independently of the main watcher config.
+          # Replace with a Secret if the configs contain credentials.
+          # In practice, AUTH credentials should come from a Secret and be
+          # mounted separately or passed as environment variables.
+          configMap:
+            name: xqueue-watcher-queue-configs
+
+      restartPolicy: Always

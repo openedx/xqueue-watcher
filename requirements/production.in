@@ -1,5 +1,0 @@
-# Production requirements for using this package
-
--c constraints.txt
-
--r base.txt

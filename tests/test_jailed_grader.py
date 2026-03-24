@@ -3,12 +3,20 @@ import os
 import sys
 import textwrap
 import unittest
-from path import Path
+from pathlib import Path
+
+import pytest
+
+try:
+    from codejail.jail_code import configure
+    HAS_CODEJAIL = True
+except ImportError:
+    HAS_CODEJAIL = False
 
 from xqueue_watcher.jailedgrader import JailedGrader
-from codejail.jail_code import configure
 
 
+@pytest.mark.skipif(not HAS_CODEJAIL, reason="codejail not installed")
 class JailedGraderTests(unittest.TestCase):
     def setUp(self):
         configure("python", sys.executable, user=getpass.getuser())
@@ -21,7 +29,7 @@ class JailedGraderTests(unittest.TestCase):
                     user=getpass.getuser(),
                 )
                 break
-        self.grader_root = Path(__file__).dirname() / 'fixtures'
+        self.grader_root = Path(__file__).parent / 'fixtures'
         self.g = JailedGrader(grader_root=self.grader_root)
         self.g3 = JailedGrader(grader_root=self.grader_root, codejail_python='python3')
 
