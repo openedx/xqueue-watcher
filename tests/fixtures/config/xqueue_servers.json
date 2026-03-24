@@ -1,0 +1,6 @@
+{
+    "fixture-server": {
+        "SERVER": "http://fixture-xqueue:18040",
+        "AUTH": ["fixture-user", "fixture-pass"]
+    }
+}

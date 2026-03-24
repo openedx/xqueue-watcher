@@ -1,14 +1,17 @@
 {
     "test-123": {
-        "SERVER": "http://127.0.0.1:18040",
+        "SERVER_REF": "default",
         "CONNECTIONS": 1,
-        "AUTH": ["lms", "lms"],
         "HANDLERS": [
             {
-                "HANDLER": "xqueue_watcher.grader.Grader",
+                "HANDLER": "xqueue_watcher.containergrader.ContainerGrader",
                 "KWARGS": {
-                    "grader_root": "../data/6.00x/graders/",
-                    "gradepy": "../data/6.00x/graders/grade.py"
+                    "grader_root": "/graders/",
+                    "image": "grader-base:local",
+                    "backend": "docker",
+                    "cpu_limit": "500m",
+                    "memory_limit": "256Mi",
+                    "timeout": 20
                 }
             }
         ]

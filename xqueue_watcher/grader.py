@@ -2,13 +2,13 @@
 Implementation of a grader compatible with XServer
 """
 import html
-import os
 import time
 import json
-from path import Path
+from pathlib import Path
 import logging
 import multiprocessing
-from statsd import statsd
+
+from . import metrics as _metrics
 
 
 def format_errors(errors):
@@ -110,7 +110,7 @@ class Grader:
 
     def process_item(self, content, queue=None):
         try:
-            statsd.increment('xqueuewatcher.process-item')
+            _metrics.process_item_counter.add(1)
             body = content['xqueue_body']
             files = content['xqueue_files']
 
@@ -123,25 +123,42 @@ class Grader:
             except ValueError as err:
                 # If parsing json fails, erroring is fine--something is wrong in the content.
                 # However, for debugging, still want to see what the problem is
-                statsd.increment('xqueuewatcher.grader_payload_error')
+                _metrics.grader_payload_error_counter.add(1)
 
                 self.log.debug(f"error parsing: '{payload}' -- {err}")
                 raise
 
             self.log.debug(f"Processing submission, grader payload: {payload}")
             relative_grader_path = grader_config['grader']
-            grader_path = os.path.abspath(self.grader_root / relative_grader_path)
+            # Reject paths that contain ".." components before resolving to
+            # avoid symlink edge-cases that could slip past the relative_to()
+            # check below.  Absolute paths are still subject to that check.
+            if '..' in Path(relative_grader_path).parts:
+                raise ValueError(
+                    f"Grader path {relative_grader_path!r} contains path traversal sequences."
+                )
+            grader_path = (self.grader_root / relative_grader_path).resolve()
+            # Guard against path traversal: ensure the resolved path stays within grader_root.
+            try:
+                grader_path.relative_to(self.grader_root.resolve())
+            except ValueError as exc:
+                raise ValueError(
+                    f"Grader path {relative_grader_path!r} resolves outside "
+                    f"grader_root {self.grader_root!r}"
+                ) from exc
             start = time.time()
             results = self.grade(grader_path, grader_config, student_response)
 
-            statsd.histogram('xqueuewatcher.grading-time', time.time() - start)
+            elapsed = time.time() - start
+            _metrics.grading_time_histogram.record(elapsed)
+            self.log.debug('grading-time seconds=%.3f', elapsed)
 
             # Make valid JSON message
             reply = {'correct': results['correct'],
                      'score': results['score'],
                      'msg': self.render_results(results)}
 
-            statsd.increment('xqueuewatcher.replies (non-exception)')
+            _metrics.replies_counter.add(1)
         except Exception as e:
             self.log.exception("process_item")
             if queue:

@@ -1,5 +1,5 @@
 import unittest
-from path import Path
+from pathlib import Path
 import json
 from unittest.mock import Mock
 import time
@@ -76,8 +76,11 @@ class ManagerTests(unittest.TestCase):
             })
         self.assertTrue(codejail.jail_code.is_configured("other-python"))
 
-        # now we'll see if the codejail config is inherited in the handler subprocess
+        # Verify codejail config is visible to the grader running in the same process.
+        # (fork_per_item=False avoids relying on multiprocessing start-method-specific
+        # state inheritance, which varies between 'fork' and 'forkserver'.)
         handler_config = self.config['test1'].copy()
+        handler_config['HANDLERS'][0]['KWARGS'] = {'fork_per_item': False}
         client = self.m.client_from_config("test", handler_config)
         client.session = MockXQueueServer()
         client._handle_submission(json.dumps({
@@ -162,6 +165,90 @@ class ManagerTests(unittest.TestCase):
         self.assertIn('required', err_msg)
         sys.stderr = stderr
 
-        mydir = Path(__file__).dirname()
-        args = ['-d', mydir / "fixtures/config"]
+        mydir = Path(__file__).parent
+        args = ['-d', str(mydir / "fixtures/config")]
         self.assertEqual(manager.main(args), 0)
+
+
+class ServerRefTests(unittest.TestCase):
+    def setUp(self):
+        self.m = manager.Manager()
+        self.m.xqueue_servers = {
+            "primary": {
+                "SERVER": "http://primary-xqueue:18040",
+                "AUTH": ["user1", "pass1"],
+            },
+        }
+
+    def tearDown(self):
+        try:
+            self.m.shutdown()
+        except SystemExit:
+            pass
+
+    def _simple_config(self, queue_config):
+        """Wrap a single queue config dict with a handler."""
+        return {
+            "HANDLERS": [{"HANDLER": "tests.test_grader.MockGrader"}],
+            **queue_config,
+        }
+
+    def test_server_ref_resolves_url_and_auth(self):
+        config = self._simple_config({"SERVER_REF": "primary"})
+        client = self.m.client_from_config("my-queue", config)
+        self.assertEqual(client.xqueue_server, "http://primary-xqueue:18040")
+        self.assertEqual(client.username, "user1")
+        self.assertEqual(client.password, "pass1")
+
+    def test_server_ref_unknown_raises(self):
+        config = self._simple_config({"SERVER_REF": "nonexistent"})
+        with self.assertRaises(ValueError) as ctx:
+            self.m.client_from_config("my-queue", config)
+        self.assertIn("nonexistent", str(ctx.exception))
+
+    def test_server_ref_with_server_key_raises(self):
+        config = self._simple_config({
+            "SERVER_REF": "primary",
+            "SERVER": "http://other:18040",
+        })
+        with self.assertRaises(ValueError) as ctx:
+            self.m.client_from_config("my-queue", config)
+        self.assertIn("SERVER_REF", str(ctx.exception))
+
+    def test_server_ref_with_auth_key_raises(self):
+        config = self._simple_config({
+            "SERVER_REF": "primary",
+            "AUTH": ["u", "p"],
+        })
+        with self.assertRaises(ValueError) as ctx:
+            self.m.client_from_config("my-queue", config)
+        self.assertIn("SERVER_REF", str(ctx.exception))
+
+    def test_no_server_ref_still_works(self):
+        config = self._simple_config({
+            "SERVER": "http://direct:18040",
+            "AUTH": ["u", "p"],
+        })
+        client = self.m.client_from_config("my-queue", config)
+        self.assertEqual(client.xqueue_server, "http://direct:18040")
+        self.assertEqual(client.username, "u")
+
+    def test_configure_from_directory_loads_xqueue_servers(self):
+        mydir = Path(__file__).parent
+        m = manager.Manager()
+        m.configure_from_directory(mydir / "fixtures/config")
+        self.assertIn("fixture-server", m.xqueue_servers)
+        self.assertEqual(
+            m.xqueue_servers["fixture-server"]["SERVER"],
+            "http://fixture-xqueue:18040",
+        )
+
+    def test_configure_from_directory_no_servers_file(self, tmp_path=None):
+        import tempfile, os
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            (tmp / "conf.d").mkdir()
+            (tmp / "conf.d" / "empty.json").write_text("{}")
+            m = manager.Manager()
+            m.configure_from_directory(tmp)
+            self.assertEqual(m.xqueue_servers, {})

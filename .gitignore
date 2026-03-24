@@ -22,3 +22,10 @@ reports/
 \#*\#
 *.egg-info
 .idea/
+
+# uv
+.venv/
+
+# Kubernetes secrets — never commit real values
+deploy/kubernetes/secret.yaml
+Automated code Graders With xqueue-watcher.md

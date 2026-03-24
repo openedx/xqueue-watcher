@@ -1,27 +1,33 @@
-name: Upgrade Python Requirements
+name: Update Dependencies
 
 on:
   schedule:
     - cron: "15 15 1/14 * *"
   workflow_dispatch:
-    inputs:
-      branch:
-        description: "Target branch against which to create requirements PR"
-        required: true
-        default: 'master'
+
+permissions: {}
 
 jobs:
-  call-upgrade-python-requirements-workflow:
-    uses: openedx/.github/.github/workflows/upgrade-python-requirements.yml@master
-    with:
-      branch: ${{ github.event.inputs.branch || 'master' }}
-      # optional parameters below; fill in if you'd like github or email notifications
-      # user_reviewers: ""
-      # team_reviewers: ""
-      email_address: "aurora-requirements-update@2u-internal.opsgenie.net"
-      send_success_notification: true
-    secrets:
-      requirements_bot_github_token: ${{ secrets.REQUIREMENTS_BOT_GITHUB_TOKEN }}
-      requirements_bot_github_email: ${{ secrets.REQUIREMENTS_BOT_GITHUB_EMAIL }}
-      edx_smtp_username: ${{ secrets.EDX_SMTP_USERNAME }}
-      edx_smtp_password: ${{ secrets.EDX_SMTP_PASSWORD }}
+  update-dependencies:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v4
+
+    - name: Update uv.lock
+      run: uv lock --upgrade
+
+    - name: Create Pull Request
+      uses: peter-evans/create-pull-request@v6
+      with:
+        token: ${{ secrets.REQUIREMENTS_BOT_GITHUB_TOKEN }}
+        commit-message: "chore: update uv.lock with latest dependency versions"
+        title: "chore: update dependencies"
+        body: "Automated dependency update via `uv lock --upgrade`."
+        branch: "chore/update-dependencies"
+        delete-branch: true

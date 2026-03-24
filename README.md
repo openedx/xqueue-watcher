@@ -18,9 +18,10 @@ root/
 │   ├── ... # xqueue-watcher repo, unchanged
 │   └── ...
 ├── config/
-│   └── conf.d/
+│   ├── conf.d/
 │   │   └── my-course.json
-│   └── logging.json
+│   ├── logging.json
+│   └── xqueue_servers.json   # named server references (keep out of version control)
 └── my-course/
    ├── exercise1/
    │   ├── grader.py  # - per-exercise grader
@@ -46,6 +47,79 @@ Now you're ready to run it.
 python -m xqueue_watcher -d [path to the config directory, eg ../config]
 ```
 
+Named XQueue server references
+------------------------------
+
+XQueue server connection details (URL and credentials) can be defined once in
+`xqueue_servers.json` and referenced by name from queue configs. This keeps
+secrets out of course configuration files.
+
+**`config/xqueue_servers.json`** — define one or more named servers:
+```json
+{
+    "default": {
+        "SERVER": "http://127.0.0.1:18040",
+        "AUTH": ["uname", "pwd"]
+    }
+}
+```
+
+Queue configs in `conf.d` then use `SERVER_REF` instead of `SERVER`/`AUTH`:
+```json
+{
+    "test-123": {
+        "SERVER_REF": "default",
+        "CONNECTIONS": 1,
+        "HANDLERS": [
+            {
+                "HANDLER": "xqueue_watcher.grader.Grader",
+                "KWARGS": {
+                    "grader_root": "/path/to/course/graders/"
+                }
+            }
+        ]
+    }
+}
+```
+
+`SERVER_REF` and `SERVER`/`AUTH` are mutually exclusive — a `ValueError` is
+raised at startup if both are present in the same queue config.
+
+Kubernetes
+~~~~~~~~~~
+
+`xqueue_servers.json` is designed to be delivered as a mounted Kubernetes
+Secret, keeping credentials completely separate from the rest of the
+configuration (which can live in a ConfigMap):
+
+```yaml
+# Secret — holds credentials
+apiVersion: v1
+kind: Secret
+metadata:
+  name: xqueue-servers
+stringData:
+  xqueue_servers.json: |
+    {
+      "default": {
+        "SERVER": "http://xqueue-svc:18040",
+        "AUTH": ["lms", "s3cr3t"]
+      }
+    }
+```
+
+```yaml
+# Deployment — mount alongside the rest of the config
+volumes:
+  - name: xqueue-servers
+    secret:
+      secretName: xqueue-servers
+volumeMounts:
+  - name: xqueue-servers
+    mountPath: /config/xqueue_servers.json
+    subPath: xqueue_servers.json
+```
+
 The course configuration JSON file in `conf.d` should have the following structure:
 ```json
     {
@@ -57,7 +131,7 @@ The course configuration JSON file in `conf.d` should have the following structu
                 {
                     "HANDLER": "xqueue_watcher.grader.Grader",
                     "KWARGS": {
-                        "grader_root": "/path/to/course/graders/",
+                        "grader_root": "/path/to/course/graders/"
                     }
                 }
             ]
@@ -66,8 +140,9 @@ The course configuration JSON file in `conf.d` should have the following structu
 ```
 
 * `test-123`: the name of the queue
-* `SERVER`: XQueue server address
-* `AUTH`: List containing [username, password] of XQueue Django user
+* `SERVER`: XQueue server address (omit when using `SERVER_REF`)
+* `AUTH`: List containing [username, password] of XQueue Django user (omit when using `SERVER_REF`)
+* `SERVER_REF`: name of a server defined in `xqueue_servers.json` (alternative to `SERVER`/`AUTH`)
 * `CONNECTIONS`: how many threads to spawn to watch the queue
 * `HANDLERS`: list of callables that will be called for each queue submission
    * `HANDLER`: callable name, see below for Submissions Handler

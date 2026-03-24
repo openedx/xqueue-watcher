@@ -1,6 +1,7 @@
 import time
 import json
 import logging
+import os
 import requests
 from requests.auth import HTTPBasicAuth
 import threading
@@ -8,6 +9,15 @@ import multiprocessing
 from .settings import MANAGER_CONFIG_DEFAULTS
 
 log = logging.getLogger(__name__)
+
+# TLS verification is on by default. Set XQWATCHER_VERIFY_TLS=false to disable
+# (e.g., for self-signed certificates in development). Never disable in production.
+_VERIFY_TLS = os.environ.get("XQWATCHER_VERIFY_TLS", "true").strip().lower() not in ("0", "false", "no")
+if not _VERIFY_TLS:
+    log.warning(
+        "TLS certificate verification is DISABLED (XQWATCHER_VERIFY_TLS=false). "
+        "This must not be used in production."
+    )
 
 
 class XQueueClient:
@@ -81,6 +91,7 @@ class XQueueClient:
                     auth=self.http_basic_auth,
                     timeout=self.requests_timeout,
                     allow_redirects=self.follow_client_redirects,
+                    verify=_VERIFY_TLS,
                     **kwargs
                 )
             except requests.exceptions.ConnectionError as e:
@@ -106,8 +117,8 @@ class XQueueClient:
         if self.username is None:
             return True
         url = self.xqueue_server + '/xqueue/login/'
-        log.debug(f"Trying to login to {url} with user: {self.username} and pass {self.password}")
-        response = self.session.request('post', url, auth=self.http_basic_auth, data={
+        log.debug("Trying to login to %s with user: %s", url, self.username)
+        response = self.session.request('post', url, auth=self.http_basic_auth, verify=_VERIFY_TLS, data={
             'username': self.username,
             'password': self.password,
             })
@@ -145,7 +156,7 @@ class XQueueClient:
             if result:
                 reply = {'xqueue_body': json.dumps(result),
                          'xqueue_header': content['xqueue_header']}
-                status, message = self._request('post', '/xqueue/put_result/', data=reply, verify=False)
+                status, message = self._request('post', '/xqueue/put_result/', data=reply)
                 if not status:
                     log.error('Failure for %r -> %r', reply, message)
                 success.append(status)
@@ -177,10 +188,9 @@ class XQueueClient:
                 num_tries += 1
                 time.sleep(self.login_poll_interval)
                 if not self._login():
-                    log.error("Still could not log in to %s (%s:%s) tries: %d",
+                    log.error("Still could not log in to %s (user: %s) tries: %d",
                         self.queue_name,
                         self.username,
-                        self.password,
                         num_tries)
                 else:
                     break

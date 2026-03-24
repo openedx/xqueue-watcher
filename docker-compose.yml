@@ -1,0 +1,51 @@
+services:
+  # xqueue: the submission queue that xqueue-watcher polls.
+  # Uses the official Open edX xqueue image.
+  xqueue:
+    image: openedx/xqueue:latest
+    ports:
+      - "18040:18040"
+    environment:
+      DJANGO_SETTINGS_MODULE: xqueue.settings.devstack
+      XQUEUE_DJANGO_SECRET_KEY: dev-secret-key
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:18040/xqueue/status/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # xqueue-watcher: polls xqueue and routes submissions to the grader.
+  xqueue-watcher:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      xqueue:
+        condition: service_healthy
+    volumes:
+      # Mount the local conf.d so you can edit queue configs without rebuilding.
+      - ./conf.d:/etc/xqueue-watcher/conf.d:rw
+      # Mount local grader scripts for rapid iteration.
+      - ./data:/graders:rw
+      # Give xqueue-watcher access to the Docker socket so it can spawn grader containers.
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      # The Docker daemon interprets bind-mount sources relative to the *host*
+      # filesystem, not the watcher container.  Set this to the absolute host-side
+      # path that corresponds to /graders inside this container (i.e. the absolute
+      # path of ./data on your machine).
+      XQWATCHER_DOCKER_HOST_GRADER_ROOT: /absolute/host/path/to/data
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    command: xqueue-watcher -d /etc/xqueue-watcher
+
+  # sample-grader: an example grader image for local testing.
+  # Course teams replace this with their own image.
+  sample-grader:
+    build:
+      context: .
+      dockerfile: grader_support/Dockerfile.base
+    image: grader-base:local
+    # This service is not started automatically — it exists so `docker compose build`
+    # builds the base image that course grader images extend.
+    profiles: ["build-only"]

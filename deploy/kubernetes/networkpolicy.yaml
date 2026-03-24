@@ -1,0 +1,19 @@
+# Deny all egress from grading Job pods.
+# xqueue-watcher pods themselves still need egress to reach the xqueue server.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: deny-grader-egress
+  namespace: xqueue-watcher
+  labels:
+    app.kubernetes.io/name: xqueue-watcher
+    app.kubernetes.io/component: network-policy
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: xqueue-grader
+  policyTypes:
+    - Egress
+  # No egress rules = deny all outbound traffic from grader pods.
+  # Student code cannot make network calls, exfiltrate data, or reach external services.
+  egress: []
