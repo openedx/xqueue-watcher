@@ -12,7 +12,8 @@ The Kubernetes backend applies a defence-in-depth security posture:
   - RuntimeDefault seccomp profile (restricts available syscalls)
   - /tmp emptyDir with a size cap (prevents disk exhaustion)
   - No service-account token auto-mounted
-  - CPU, memory, and PID limits to prevent resource exhaustion
+  - CPU and memory limits to prevent resource exhaustion
+    (PID limits must be enforced via a namespace LimitRange or kubelet --pod-pids-limit)
 
 Operators should also ensure:
   - The grader namespace enforces the Kubernetes "restricted" Pod Security Standard
@@ -410,7 +411,6 @@ class ContainerGrader(Grader):
                                     limits={
                                         "cpu": self.cpu_limit,
                                         "memory": self.memory_limit,
-                                        "pids": "256",
                                     },
                                     requests={
                                         "cpu": "100m",
