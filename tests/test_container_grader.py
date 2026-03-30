@@ -41,6 +41,45 @@ class TestParseCpuMillis:
 
 
 # ---------------------------------------------------------------------------
+# _parse_memory_bytes
+# ---------------------------------------------------------------------------
+
+class TestParseMemoryBytes:
+    # IEC binary suffixes
+    def test_mebibytes(self):
+        assert _parse_memory_bytes("256Mi") == 256 * 1024**2
+
+    def test_gibibytes(self):
+        assert _parse_memory_bytes("1Gi") == 1024**3
+
+    def test_kibibytes(self):
+        assert _parse_memory_bytes("512Ki") == 512 * 1024
+
+    def test_tebibytes(self):
+        assert _parse_memory_bytes("1Ti") == 1024**4
+
+    # SI decimal suffixes
+    def test_megabytes(self):
+        assert _parse_memory_bytes("512M") == 512 * 1000**2
+
+    def test_gigabytes(self):
+        assert _parse_memory_bytes("1G") == 1000**3
+
+    def test_kilobytes(self):
+        assert _parse_memory_bytes("1K") == 1000
+
+    def test_terabytes(self):
+        assert _parse_memory_bytes("1T") == 1000**4
+
+    # Plain integers
+    def test_plain_integer_string(self):
+        assert _parse_memory_bytes("1024") == 1024
+
+    def test_zero(self):
+        assert _parse_memory_bytes("0") == 0
+
+
+# ---------------------------------------------------------------------------
 # ContainerGrader.__init__
 # ---------------------------------------------------------------------------
 

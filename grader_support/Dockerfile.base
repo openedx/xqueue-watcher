@@ -1,4 +1,5 @@
-FROM python:3.11-slim AS grader-base
+ARG PYTHON_VERSION=3.12
+FROM python:${PYTHON_VERSION}-slim AS grader-base
 
 # Create a non-root user for running student code
 RUN useradd -m -u 1000 --shell /bin/false grader
