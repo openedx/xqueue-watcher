@@ -3,6 +3,14 @@ xqueue_watcher
 
 This is an implementation of a polling [XQueue](https://github.com/openedx/xqueue) client and grader.
 
+## Documentation
+
+| Guide | Audience |
+|-------|----------|
+| [Operator Guide](docs/operators.md) | DevOps / platform engineers deploying xqueue-watcher |
+| [Course Team Guide](docs/course-teams.md) | Course teams writing graders and testing locally |
+| [Grader Interface Reference](docs/grader-interface.md) | Developers extending or customising the grading pipeline |
+
 Overview
 ========
 
@@ -149,7 +157,7 @@ The course configuration JSON file in `conf.d` should have the following structu
    * `KWARGS`: optional keyword arguments to apply during instantiation
       * `grader_root`: path to the course directory, eg /path/to/my-course
 
-> TODO: document logging.json
+See the [Operator Guide](docs/operators.md#loggingjson) for `logging.json` documentation.
 
 Submissions Handler
 ===================
