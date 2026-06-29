@@ -127,13 +127,62 @@ class XQueueClient:
             return True
         url = self.xqueue_server + '/xqueue/login/'
         log.debug("Trying to login to %s with user: %s", url, self.username)
-        response = self.session.request('post', url, auth=self.http_basic_auth, verify=_VERIFY_TLS, data={
-            'username': self.username,
-            'password': self.password,
-            })
+        # Clear any stale session/CSRF state so the GET arrives as an anonymous
+        # request.  A stale session cookie causes DRF to return 403 on the GET,
+        # preventing us from obtaining a fresh CSRF cookie.
+        self.session.cookies.clear()
+        self.session.headers.pop('X-CSRFToken', None)
+        # GET the login page so Django sets the csrftoken cookie before we POST.
+        # edx-submissions exposes GET /xqueue/login/ for this purpose
+        # (openedx/edx-submissions#352).  Older deployments that only allow POST
+        # will return 405; we log a warning and proceed without a token — the
+        # login POST is AllowAny so it is CSRF-exempt.
+        get_response = self.session.request(
+            'get',
+            url,
+            auth=self.http_basic_auth,
+            timeout=self.requests_timeout,
+            verify=_VERIFY_TLS,
+        )
+        if get_response.status_code != 200:
+            log.debug(
+                "Login CSRF prefetch returned %d from %s; "
+                "proceeding without CSRF token (older server?)",
+                get_response.status_code, url,
+            )
+        csrf_token = (
+            self.session.cookies.get('csrftoken')
+            or self.session.cookies.get('edx-csrftoken')
+        )
+        login_headers = {'Referer': url}
+        if csrf_token:
+            login_headers['X-CSRFToken'] = csrf_token
+        response = self.session.request(
+            'post',
+            url,
+            auth=self.http_basic_auth,
+            timeout=self.requests_timeout,
+            verify=_VERIFY_TLS,
+            headers=login_headers,
+            data={
+                'username': self.username,
+                'password': self.password,
+            },
+        )
         if response.status_code != 200:
             log.error('Log in error %s %s', response.status_code, response.content)
             return False
+        # Persist the CSRF token and Referer in the session so every subsequent
+        # mutating request (put_result POST) automatically includes them.
+        # Django 4+ rejects HTTPS POST requests that carry no Referer or Origin
+        # header even when the CSRF token itself is correct.
+        csrf_token = (
+            self.session.cookies.get('csrftoken')
+            or self.session.cookies.get('edx-csrftoken')
+        )
+        self.session.headers.update({'Referer': self.xqueue_server})
+        if csrf_token:
+            self.session.headers.update({'X-CSRFToken': csrf_token})
         msg = response.json()
         log.debug("login response from %r: %r", url, msg)
         return msg['return_code'] == 0
