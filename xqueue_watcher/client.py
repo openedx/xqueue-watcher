@@ -83,6 +83,7 @@ class XQueueClient:
     def _request(self, method, uri, **kwargs):
         url = self.xqueue_server + uri
         r = None
+        reauthenticated = False
         while not r:
             try:
                 r = self.session.request(
@@ -102,14 +103,22 @@ class XQueueClient:
             # Django can issue both a 302 to the login page and a
             # 301 if the original URL did not have a trailing / and
             # APPEND_SLASH is true in XQueue deployment, which is the default.
-            elif r.status_code in (301, 302):
+            # DRF returns 401/403 directly when the session is missing or expired.
+            elif r.status_code in (301, 302, 401, 403):
+                if reauthenticated:
+                    # Already re-authenticated once; give up to avoid a login storm.
+                    message = "Received {} after re-authentication, calling {}.".format(
+                        r.status_code, url)
+                    log.error(message)
+                    return (False, message)
+                reauthenticated = True
                 if self._login():
                     r = None
                 else:
                     return (False, "Could not log in")
             else:
-                message = "Received un expected response status code, {}, calling {}.".format(
-                    r.status_code,url)
+                message = "Received unexpected response status code, {}, calling {}. Response: {}".format(
+                    r.status_code, url, r.content)
                 log.error(message)
                 return (False, message)
 
