@@ -61,14 +61,27 @@ def main():
     trans.install(names=None)
     _dbg("gettext installed")
 
+    from . import run as run_module, graderutil
+    from .gradelib import EndTest
+
     # Load the grader module to access test definitions, preprocessors, and
     # input validators.  The grader script is baked into this image.
+    #
+    # This load (and each run_module.run() call below) is wrapped in its own
+    # graderutil.module_isolation() so that any modules it causes to be
+    # imported -- the grader module itself, and any helper modules the grader
+    # script imports -- are purged from sys.modules once we're done with them.
+    # Without this, module-level mutable state in those modules could leak
+    # into the later staff-answer/submission runs even though those runs are
+    # separately isolated from each other, because module_isolation() only
+    # rolls back modules imported *after* it takes its snapshot.
     _dbg(f"loading grader module from {grader_path!r}")
     try:
-        spec = importlib.util.spec_from_file_location("grader_module", grader_path)
-        grader_module_obj = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(grader_module_obj)
-        grader = grader_module_obj.grader
+        with graderutil.module_isolation():
+            spec = importlib.util.spec_from_file_location("grader_module", grader_path)
+            grader_module_obj = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(grader_module_obj)
+            grader = grader_module_obj.grader
         _dbg(f"grader module loaded OK, tests={len(list(grader.tests()))}")
     except Exception:
         _dbg("EXCEPTION loading grader module:")
@@ -122,9 +135,6 @@ def main():
     sys.path.insert(0, grader_dir)
     sys.path.insert(0, "/tmp")
     _dbg(f"sys.path[:4]={sys.path[:4]}")
-
-    from . import run as run_module, graderutil
-    from .gradelib import EndTest
 
     grader_name = os.path.splitext(os.path.basename(grader_path))[0]
     _dbg(f"grader_name={grader_name!r}")
