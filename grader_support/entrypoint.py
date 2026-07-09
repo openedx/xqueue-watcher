@@ -123,15 +123,21 @@ def main():
     sys.path.insert(0, "/tmp")
     _dbg(f"sys.path[:4]={sys.path[:4]}")
 
-    from . import run as run_module
+    from . import run as run_module, graderutil
     from .gradelib import EndTest
 
     grader_name = os.path.splitext(os.path.basename(grader_path))[0]
     _dbg(f"grader_name={grader_name!r}")
 
-    # Run the staff answer first to get expected outputs.
+    # Run the staff answer and the student submission as two isolated in-process
+    # imports of the grader module. Without module_isolation(), the second
+    # run_module.run() call below would hit Python's sys.modules cache instead of
+    # re-executing the grader module, silently reusing whatever mutable
+    # module-level state (generators, shared dicts/lists, gradelib.rand snapshotted
+    # via `from gradelib import *`) the first run left behind.
     _dbg("running staff answer")
-    expected_output = run_module.run(grader_name, "answer", seed)
+    with graderutil.module_isolation():
+        expected_output = run_module.run(grader_name, "answer", seed)
     _dbg(f"expected_output grader status={expected_output['grader']['status']!r}"
          f"  submission status={expected_output['submission']['status']!r}"
          f"  exceptions={expected_output['exceptions']}"
@@ -156,7 +162,8 @@ def main():
 
     # Run the student submission.
     _dbg("running student submission")
-    actual_output = run_module.run(grader_name, "submission", seed)
+    with graderutil.module_isolation():
+        actual_output = run_module.run(grader_name, "submission", seed)
     _dbg(f"actual_output grader status={actual_output['grader']['status']!r}"
          f"  submission status={actual_output['submission']['status']!r}"
          f"  exceptions={actual_output['exceptions']}"
