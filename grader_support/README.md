@@ -47,7 +47,7 @@ Course teams create their own image `FROM grader-base` and add their grader scri
 
 ```dockerfile
 # syntax=docker/dockerfile:1
-ARG GRADER_BASE_IMAGE=ghcr.io/mitodl/xqueue-watcher-grader-base:latest
+ARG GRADER_BASE_IMAGE=ghcr.io/openedx/xqueue-watcher-grader-base:latest
 FROM ${GRADER_BASE_IMAGE}
 
 # pip must run as root; the base image ends with USER grader.
