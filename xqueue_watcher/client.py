@@ -118,7 +118,7 @@ class XQueueClient:
                     return (False, "Could not log in")
             else:
                 message = "Received unexpected response status code, {}, calling {}. Response: {}".format(
-                    r.status_code, url, r.content)
+                    r.status_code, url, str(r.content)[:1000])
                 log.error(message)
                 return (False, message)
 
@@ -135,8 +135,8 @@ class XQueueClient:
         # GET the login page so Django sets the csrftoken cookie before we POST.
         # edx-submissions exposes GET /xqueue/login/ for this purpose
         # (openedx/edx-submissions#352).  Older deployments that only allow POST
-        # will return 405; we log a warning and proceed without a token — the
-        # login POST is AllowAny so it is CSRF-exempt.
+        # will return 405; we log at debug level and proceed without a token —
+        # the login POST is AllowAny so it is CSRF-exempt.
         get_response = self.session.request(
             'get',
             url,
