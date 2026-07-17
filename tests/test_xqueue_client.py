@@ -238,7 +238,10 @@ class ClientTests(unittest.TestCase):
     def test_login_persists_csrf_in_session_headers(self):
         """After a successful login, the session X-CSRFToken header is updated."""
         def set_cookie_on_post(url, response, session):
-            if url.endswith('xqueue/login/') and response.status_code == 200:
+            # session._requests is only appended *after* the checker runs, so
+            # len == 1 here means this is the second request (the POST) —
+            # the first (GET prefetch) already added its entry.
+            if url.endswith('xqueue/login/') and len(session._requests) == 1:
                 session.cookies.set('csrftoken', 'post_login_csrf')
                 response.json.return_value = {'return_code': 0}
 
